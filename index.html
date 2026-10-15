@@ -1,0 +1,3130 @@
+<!DOCTYPE html>
+<html lang="no"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNzcwMzc1OTEwMTk2ODA0ODY0MCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2NmNWNmM2U2ZGQyZDVhYzNfY2FmZV9wYW5pcXVlLmh0bWwtNjA0In0sImV4cCI6MTc5MjA5NTgzMSwiaWF0IjoxNzkyMDkyMjMxLCJhbGciOiJSUzI1NiJ9.Tf8yIq6a2v2QPedumy475AAAvJYSQsqw9qBKK43v3zx26cbGsEPryDM2H9o_ky79Y7O6P8pxtIopGf-WjA_sAeKjFqDY9WD-nIM6kHPRlJdMnxgKiJMpjuYZTGdFaNoCDZsPWMe5cPySFarARr4NecaMD9GH_6za0rXpQeOikAGSrVIb0AT9ehszjboZ-FC5NIINdsDNM-AM1oetS9TP-Z06nmqX64FrfcSBzzRgmHZsea_jJ2IlaDUplw6ooEcJKhJ6ScM9UnBK3KKXoyi-kzGdNq851sa5t_QWgosKRzzImJ6-DobFRwYvxol8FeQW5gwzQGQQisa3hRDHdfhhOw","c_cf5cf3e6dd2d5ac3_cafe_panique.html-604")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Café Panique ! – Franskspill for 9. trinn</title>
+<style>
+  :root {
+    --bistro-red: #9e1b1b;
+    --bistro-red-dark: #6e1010;
+    --bistro-cream: #fdf8ee;
+    --bistro-paper: #fffdf7;
+    --bistro-wood: #4a2c18;
+    --bistro-wood-light: #6b4226;
+    --bistro-gold: #d4af37;
+    --bistro-gold-light: #f5e19c;
+    --bistro-green: #1f7a4c;
+    --bistro-blue: #1d4ed8;
+    --text-dark: #261810;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bistro-cream);
+    background-image: radial-gradient(#e6dcc8 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Awning Header */
+  .awning {
+    height: 26px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--bistro-red) 0px,
+      var(--bistro-red) 40px,
+      #ffffff 40px,
+      #ffffff 80px
+    );
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border-bottom: 4px solid var(--bistro-gold);
+  }
+
+  /* Top Navigation Bar */
+  .topbar {
+    background: var(--bistro-wood);
+    color: #fff;
+    padding: 10px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--bistro-gold-light);
+    cursor: pointer;
+  }
+
+  .top-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+  }
+
+  .btn-top {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.28);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.83rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+  }
+
+  .btn-top:hover {
+    background: rgba(255,255,255,0.24);
+    transform: translateY(-1px);
+  }
+
+  .btn-top.active {
+    background: var(--bistro-gold);
+    color: var(--text-dark);
+    border-color: #fff;
+  }
+
+  .btn-top.teacher-active {
+    background: #38bdf8;
+    color: #0f172a;
+    border-color: #bae6fd;
+  }
+
+  .btn-top.download-btn {
+    background: #10b981;
+    color: #064e3b;
+    border-color: #a7f3d0;
+    font-weight: 700;
+  }
+
+  .btn-top.download-btn:hover {
+    background: #34d399;
+  }
+
+  /* Main Container */
+  .container {
+    max-width: 1120px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Screens */
+  .screen {
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+  .screen.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Start Menu Screen */
+  .hero-card {
+    background: var(--bistro-paper);
+    border: 3px solid var(--bistro-wood);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: Georgia, serif;
+    font-size: 2.3rem;
+    color: var(--bistro-red);
+    margin-bottom: 6px;
+  }
+
+  .hero-sub {
+    font-size: 1.02rem;
+    color: #5c4636;
+    margin-bottom: 18px;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Prominent Whiteboard / Teacher Banner on Main Menu */
+  .whiteboard-hero-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: #fff;
+    border: 3px solid #38bdf8;
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    text-align: left;
+    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.22);
+  }
+
+  .whiteboard-hero-text h3 {
+    font-family: Georgia, serif;
+    font-size: 1.35rem;
+    color: #7dd3fc;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .whiteboard-hero-text p {
+    font-size: 0.92rem;
+    color: #e0f2fe;
+    line-height: 1.45;
+    max-width: 650px;
+  }
+
+  .btn-start-whiteboard {
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+  }
+
+  .btn-start-whiteboard:hover {
+    background: #7dd3fc;
+    transform: translateY(-2px);
+  }
+
+  .mode-section-title {
+    font-family: Georgia, serif;
+    font-size: 1.22rem;
+    color: var(--bistro-wood);
+    margin: 16px 0 10px;
+    text-align: left;
+    border-bottom: 2px solid #e6dcc8;
+    padding-bottom: 6px;
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .mode-card {
+    background: #fff;
+    border: 2px solid #dfd3be;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mode-card:hover {
+    border-color: var(--bistro-red);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(158, 27, 27, 0.14);
+  }
+
+  .mode-card.comp {
+    background: linear-gradient(135deg, #fffdf9 0%, #fff4dc 100%);
+    border-color: var(--bistro-gold);
+  }
+
+  .mode-card.comp:hover {
+    border-color: var(--bistro-red);
+  }
+
+  .mode-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    width: fit-content;
+  }
+
+  .badge-comp { background: var(--bistro-red); color: #fff; }
+  .badge-lvl1 { background: #dcfce7; color: #166534; }
+  .badge-lvl2 { background: #dbeafe; color: #1e40af; }
+  .badge-lvl3 { background: #fef3c7; color: #92400e; }
+
+  .mode-card h3 {
+    font-size: 1.18rem;
+    margin-bottom: 6px;
+    color: var(--text-dark);
+  }
+
+  .mode-card p {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  .mode-start-btn {
+    background: var(--bistro-red);
+    color: #fff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: background 0.15s;
+  }
+
+  .mode-start-btn:hover {
+    background: var(--bistro-red-dark);
+  }
+
+  /* Highscore Board on Menu */
+  .leaderboard-box {
+    background: #fff;
+    border: 2px solid #dfd3be;
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 12px;
+    text-align: left;
+  }
+
+  .leaderboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+
+  .leaderboard-table th {
+    color: #666;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  /* Game HUD */
+  .hud {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 10px;
+    background: #fff;
+    border: 2px solid var(--bistro-wood);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+  }
+
+  .hud-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hud-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: #777;
+    font-weight: 700;
+  }
+
+  .hud-val {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+
+  .streak-pill {
+    display: inline-block;
+    background: #ffedd5;
+    color: #c2410c;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  /* Customer Area */
+  .customer-stage {
+    background: linear-gradient(180deg, #fffdf8 0%, #f7efe0 100%);
+    border: 3px solid var(--bistro-wood);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    display: grid;
+    grid-template-columns: 125px 1fr;
+    gap: 16px;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 640px) {
+    .customer-stage {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+  }
+
+  .customer-avatar-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 2px solid #e2d5be;
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .customer-emoji {
+    font-size: 3.4rem;
+    line-height: 1.1;
+  }
+
+  .customer-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-top: 4px;
+    color: var(--bistro-wood);
+  }
+
+  .speech-bubble {
+    background: #fff;
+    border: 2px solid var(--bistro-wood);
+    border-radius: 14px;
+    padding: 16px 20px;
+    position: relative;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+  }
+
+  .order-french {
+    font-family: Georgia, serif;
+    font-size: 1.38rem;
+    line-height: 1.45;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    transition: font-size 0.2s ease;
+  }
+
+  /* Enlarged font when Tavlemodus is active so students at the back can read easily */
+  body.whiteboard-active .order-french {
+    font-size: 1.85rem;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .order-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .audio-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-audio {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+
+  .btn-audio:hover {
+    background: #dbeafe;
+  }
+
+  .calm-status-badge {
+    display: none;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  /* Patience Timer Bar */
+  .timer-wrap {
+    margin-top: 10px;
+    background: #e5e7eb;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+  }
+
+  .timer-bar {
+    height: 100%;
+    width: 100%;
+    background: var(--bistro-green);
+    transition: width 0.25s linear, background-color 0.25s ease;
+  }
+
+  /* Teacher Whiteboard Toolbar ("Lærerpanel for tavle") */
+  .teacher-toolbar {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px dashed #cbd5e1;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  body.whiteboard-active .teacher-toolbar {
+    display: flex;
+  }
+
+  .teacher-toolbar-left, .teacher-toolbar-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .teacher-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #0369a1;
+    background: #e0f2fe;
+    padding: 4px 9px;
+    border-radius: 6px;
+    margin-right: 4px;
+  }
+
+  .btn-teacher-tool {
+    background: #f8fafc;
+    color: #1e293b;
+    border: 1px solid #94a3b8;
+    padding: 6px 11px;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-teacher-tool:hover {
+    background: #e2e8f0;
+  }
+
+  .btn-teacher-tool.active {
+    background: #0284c7;
+    color: #fff;
+    border-color: #0369a1;
+  }
+
+  /* Pedagogical Grammar & Structure Breakdown Box */
+  .grammar-breakdown {
+    display: none;
+    margin-top: 12px;
+    background: #f8fafc;
+    border: 2px solid #93c5fd;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .grammar-breakdown.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .grammar-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .g-chip {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .g-chip.masc {
+    background: #dbeafe;
+    color: #1e3a8a;
+    border: 1px solid #93c5fd;
+  }
+
+  .g-chip.fem {
+    background: #fce7f3;
+    color: #831843;
+    border: 1px solid #f9a8d4;
+  }
+
+  .g-chip.plural {
+    background: #fef3c7;
+    color: #78350f;
+    border: 1px solid #fde68a;
+  }
+
+  .g-chip.neg {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  /* Feedback Alert Banner */
+  .feedback-banner {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .feedback-banner.show {
+    display: flex;
+  }
+
+  .feedback-banner.error {
+    background: #fef2f2;
+    border: 2px solid #ef4444;
+    color: #991b1b;
+  }
+
+  .feedback-banner.success {
+    background: #f0fdf4;
+    border: 2px solid #22c55e;
+    color: #166534;
+  }
+
+  .btn-next-customer {
+    background: #15803d;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(21, 128, 61, 0.3);
+    transition: transform 0.15s, background 0.15s;
+  }
+
+  .btn-next-customer:hover {
+    background: #166534;
+    transform: scale(1.03);
+  }
+
+  /* Workspace: Menu Shelf & Tray */
+  .workspace {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 820px) {
+    .workspace {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .counter-box, .tray-box {
+    background: var(--bistro-paper);
+    border: 3px solid var(--bistro-wood);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+
+  .box-title {
+    font-family: Georgia, serif;
+    font-size: 1.15rem;
+    color: var(--bistro-wood);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #ece2d0;
+    padding-bottom: 6px;
+  }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+    gap: 10px;
+  }
+
+  .food-btn {
+    background: #fff;
+    border: 2px solid #ded2bd;
+    border-radius: 12px;
+    padding: 10px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.14s;
+    position: relative;
+  }
+
+  .food-btn:hover {
+    border-color: var(--bistro-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  .food-btn:active {
+    transform: scale(0.96);
+  }
+
+  .food-emoji {
+    font-size: 2.3rem;
+    margin-bottom: 4px;
+  }
+
+  .food-name {
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: var(--text-dark);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .hide-labels .food-name {
+    display: none;
+  }
+
+  .food-price {
+    background: var(--bistro-gold-light);
+    color: var(--bistro-wood);
+    font-weight: 800;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* Tray Section */
+  .tray-surface {
+    min-height: 175px;
+    background: #f4ead5;
+    border: 3px dashed #bda782;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .tray-empty {
+    width: 100%;
+    text-align: center;
+    color: #8c7658;
+    font-size: 0.9rem;
+    margin: auto 0;
+    padding: 20px 0;
+  }
+
+  .tray-pill {
+    background: #fff;
+    border: 2px solid var(--bistro-wood);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    animation: popIn 0.15s ease;
+  }
+
+  .tray-pill:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .tray-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-clear {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-serve {
+    flex: 1;
+    background: var(--bistro-green);
+    color: #fff;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-serve:hover {
+    background: #166534;
+  }
+
+  /* Modal Backdrop */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 100;
+  }
+
+  .modal-backdrop.show {
+    display: flex;
+  }
+
+  .modal-card {
+    background: var(--bistro-paper);
+    border: 4px solid var(--bistro-wood);
+    border-radius: 18px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 22px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    animation: popIn 0.2s ease;
+  }
+
+  .receipt-box {
+    background: #fff;
+    border: 2px dashed #cbbba0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 12px 0 16px;
+    font-size: 0.95rem;
+  }
+
+  .receipt-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dotted #e5e7eb;
+  }
+
+  .caisse-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  @media (max-width: 480px) {
+    .caisse-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .caisse-btn {
+    background: #fff;
+    border: 2px solid var(--bistro-wood);
+    border-radius: 12px;
+    padding: 14px 12px;
+    font-family: Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .caisse-btn:hover {
+    background: var(--bistro-gold-light);
+    border-color: var(--bistro-red);
+    transform: translateY(-2px);
+  }
+
+  /* Diploma / End Screen */
+  .diploma-card {
+    background: linear-gradient(135deg, #fffdf9 0%, #fff6df 100%);
+    border: 6px double var(--bistro-gold);
+    outline: 3px solid var(--bistro-wood);
+    border-radius: 18px;
+    padding: 28px;
+    max-width: 650px;
+    margin: 10px auto;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  }
+
+  .diploma-header {
+    font-family: Georgia, serif;
+    font-size: 2rem;
+    color: var(--bistro-red);
+    margin-bottom: 4px;
+  }
+
+  .diploma-rank {
+    display: inline-block;
+    background: var(--bistro-wood);
+    color: var(--bistro-gold-light);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 10px 0 18px;
+  }
+
+  .diploma-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .stat-tile {
+    background: #fff;
+    border: 2px solid #e6d8b8;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .stat-tile .num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--bistro-red);
+  }
+
+  .save-score-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .save-score-bar input {
+    padding: 10px 14px;
+    border: 2px solid var(--bistro-wood);
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 220px;
+  }
+
+  .verify-code {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6b5a45;
+    background: #f3ead8;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 8px;
+  }
+
+  /* Glossary Grid */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .glossary-item {
+    background: #fff;
+    border: 1px solid #dfd3be;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+
+  .glossary-item:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+  }
+</style>
+</head>
+<body>
+
+<div class="awning"></div>
+
+<header class="topbar">
+  <div class="brand" onclick="showMenu()">
+    <span>🥐 Café Panique !</span>
+  </div>
+  <div class="top-controls">
+    <button class="btn-top" id="btnWhiteboard" onclick="toggleWhiteboardMode()" title="Slå på tavlemodus med ekstra stor skrift, språkhjelp og ingen tidsfrist">👨‍🏫 Tavlemodus: AV</button>
+    <button class="btn-top" id="btnCalm" onclick="toggleCalmMode()" title="Slå av/på tidsfrist i alle moduser">🧘 Rolig modus: AV</button>
+    <button class="btn-top active" id="btnLabels" onclick="toggleLabels()" title="Vis/skjul franske varenavn under bildene">
+      🏷️ Merkelapper: PÅ
+    </button>
+    <button class="btn-top" onclick="openGlossary()">
+      📖 Glosebok
+    </button>
+    <button class="btn-top active" id="btnSound" onclick="toggleSound()">
+      🔊 Lyd: PÅ
+    </button>
+    <button class="btn-top download-btn" onclick="downloadHtmlFile()" title="Last ned hele spillet som én ferdig HTML-fil">
+      💾 Last ned .html
+    </button>
+    <button class="btn-top" onclick="showMenu()">
+      🏠 Meny
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- START MENU SCREEN -->
+  <section id="screenMenu" class="screen active">
+    <div class="hero-card">
+      <h1 class="hero-title">Bienvenue au Café Panique ! 🇫🇷</h1>
+      <p class="hero-sub">
+        Jobb bak disken på en travel fransk kafé! Les eller lytt til kundens bestilling på fransk, legg riktige varer på brettet og ta betalt i kassen.
+      </p>
+
+      <!-- PROMINENT WHITEBOARD / TEACHER BANNER -->
+      <div class="whiteboard-hero-banner">
+        <div class="whiteboard-hero-text">
+          <h3>👨‍🏫 Tavlemodus – Undervisning på storskjerm</h3>
+          <p>
+            Skal du gjennomgå franske bestillinger, tall eller nektelse (<em>pas de / sans</em>) felles på tavla?
+            I Tavlemodus er <strong>alt tidspress skrudd av</strong>, teksten er ekstra stor, og du får et eget <strong>lærerpanel med språkanalyse</strong> og raskt nivåbytte.
+          </p>
+        </div>
+        <button class="btn-start-whiteboard" onclick="startWhiteboardSession()">
+          👨‍🏫 Start Tavlemodus på storskjerm ➔
+        </button>
+      </div>
+
+      <h2 class="mode-section-title">🏆 Konkurransemoduser (Med poengbevis &amp; toppliste)</h2>
+      <div class="mode-grid">
+        <div class="mode-card comp" onclick="startGame('rush')">
+          <div>
+            <span class="mode-badge badge-comp">🔥 Mest populær</span>
+            <h3>Rushtid i Paris</h3>
+            <p>Du har <strong>3 liv (❤️❤️❤️)</strong>. For hver kunde krymper tiden, og bestillingene blir vanskeligere. (Tips: Klikk <em>🧘 Rolig modus</em> øverst hvis du vil fjerne tidspresset!)</p>
+          </div>
+          <button class="mode-start-btn">Start Rushtid ➔</button>
+        </div>
+
+        <div class="mode-card comp" onclick="startGame('sprint')">
+          <div>
+            <span class="mode-badge badge-comp">⚡ Fellesstart i klassen</span>
+            <h3>2-Minutters Klasseduell</h3>
+            <p>Alle har nøyaktig <strong>120 sekunder</strong>! Ekspeder så mange kunder og tjen så mange poeng du klarer før klokka ringer.</p>
+          </div>
+          <button class="mode-start-btn">Start 2-Min Duell ➔</button>
+        </div>
+      </div>
+
+      <h2 class="mode-section-title">🎓 Treningsnivåer (Øv på spesifikke mål)</h2>
+      <div class="mode-grid">
+        <div class="mode-card" onclick="startGame('lvl1')">
+          <div>
+            <span class="mode-badge badge-lvl1">Nivå 1 • Lærling</span>
+            <h3>Enkle bestillinger</h3>
+            <p>1–2 varer med <em>un / une</em> og tall fra 1 til 10 i kassen. Perfekt for å lære matordene!</p>
+          </div>
+          <button class="mode-start-btn">Spill Nivå 1</button>
+        </div>
+
+        <div class="mode-card" onclick="startGame('lvl2')">
+          <div>
+            <span class="mode-badge badge-lvl2">Nivå 2 • Servitør</span>
+            <h3>Flertall &amp; Hoderegning</h3>
+            <p>Kundene bestiller <em>deux</em> eller <em>trois</em> av samme vare, og summen i kassen går opptil 25 €.</p>
+          </div>
+          <button class="mode-start-btn">Spill Nivå 2</button>
+        </div>
+
+        <div class="mode-card" onclick="startGame('lvl3')">
+          <div>
+            <span class="mode-badge badge-lvl3">Nivå 3 • Kjøkkensjef</span>
+            <h3>Nektelse («pas de / sans»)</h3>
+            <p>Pass opp for feller! Kundene sier hva de vil ha, men også hva de <strong>ikke</strong> vil ha (<em>mais pas de... / sans...</em>).</p>
+          </div>
+          <button class="mode-start-btn">Spill Nivå 3</button>
+        </div>
+      </div>
+
+      <!-- Highscore Table -->
+      <div class="leaderboard-box">
+        <div class="leaderboard-header">
+          <h3 style="font-family: Georgia, serif; color: var(--bistro-wood);">🏅 Toppliste på denne maskinen</h3>
+          <button class="btn-clear" id="btnClearScores" style="padding: 4px 10px; font-size: 0.78rem;" onclick="clearLeaderboard()">Nullstill liste</button>
+        </div>
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Navn</th>
+              <th>Modus</th>
+              <th>Poeng</th>
+              <th>Kunder</th>
+              <th>Rang</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"><tr><td colspan="6" style="text-align:center; color:#888;">Ingen poengsummer lagret ennå. Spill en runde for å komme på pallen!</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="screenGame" class="screen">
+    <div class="hud">
+      <div class="hud-item">
+        <span class="hud-label" id="hudModeLabel">Modus</span>
+        <span class="hud-val" id="hudLives">❤️❤️❤️</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Poengsum</span>
+        <span class="hud-val" id="hudScore">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Inntjening</span>
+        <span class="hud-val" id="hudEuros">0 €</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Kunder ekspedert</span>
+        <span class="hud-val" id="hudCustomers">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Combo / Streak</span>
+        <span class="hud-val"><span class="streak-pill" id="hudStreak">🔥 x1</span></span>
+      </div>
+    </div>
+
+    <div id="feedbackBanner" class="feedback-banner"></div>
+
+    <!-- Customer & Speech Bubble -->
+    <div class="customer-stage">
+      <div class="customer-avatar-box">
+        <div class="customer-emoji" id="custEmoji">👩‍🎨</div>
+        <div class="customer-name" id="custName">Camille</div>
+      </div>
+      <div>
+        <div class="speech-bubble">
+          <div class="order-french" id="orderText">« Bonjour ! Je voudrais un croissant, s'il vous plaît. »</div>
+          <div class="order-controls">
+            <div class="audio-btn-group">
+              <button class="btn-audio" onclick="speakOrder(0.95)">🔊 Lytt på fransk</button>
+              <button class="btn-audio" onclick="speakOrder(0.68)">🐢 Lytt sakte</button>
+            </div>
+            <span class="calm-status-badge" id="calmStatusBadge" style="display: none;">🧘 Rolig modus aktiv – Ingen tidsfrist</span>
+          </div>
+
+          <div class="timer-wrap" id="timerWrap" style="display: block;">
+            <div class="timer-bar" id="timerBar"></div>
+          </div>
+
+          <!-- TEACHER WHITEBOARD TOOLBAR ("Lærerpanel for tavle") -->
+          <div class="teacher-toolbar" id="teacherToolbar">
+            <div class="teacher-toolbar-left">
+              <span class="teacher-label">👨‍🏫 Tavlepanel:</span>
+              <button class="btn-teacher-tool" id="btnToggleBreakdown" onclick="toggleBreakdown()">🔍 Vis språkhjelp / struktur</button>
+              <button class="btn-teacher-tool" onclick="nextCustomer()">
+                ⏭️ Ny kunde
+              </button>
+            </div>
+            <div class="teacher-toolbar-right">
+              <span style="font-size: 0.78rem; color: #475569; font-weight: 700;">Bytt nivå:</span>
+              <button class="btn-teacher-tool active" id="btnTeachLvl1" onclick="switchTeacherLevel('lvl1')">Nivå 1 (un/une)</button>
+              <button class="btn-teacher-tool" id="btnTeachLvl2" onclick="switchTeacherLevel('lvl2')">Nivå 2 (flertall)</button>
+              <button class="btn-teacher-tool" id="btnTeachLvl3" onclick="switchTeacherLevel('lvl3')">Nivå 3 (nektelse)</button>
+            </div>
+          </div>
+
+          <!-- Color-coded Pedagogical Breakdown Box -->
+          <div class="grammar-breakdown" id="grammarBreakdown"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counter & Tray -->
+    <div class="workspace">
+      <div class="counter-box">
+        <div class="box-title">
+          <span>🍽️ La Carte (Klikk for å legge på brettet)</span>
+          <span style="font-size: 0.8rem; font-family: sans-serif; color: #666;">Klikk på varen</span>
+        </div>
+        <div class="items-grid" id="itemsGrid">
+      <button class="food-btn" onclick="addToTray('croissant')">
+        <span class="food-emoji">🥐</span>
+        <span class="food-name">un croissant</span>
+        <span class="food-price">2 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('baguette')">
+        <span class="food-emoji">🥖</span>
+        <span class="food-name">une baguette</span>
+        <span class="food-price">3 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('cafe')">
+        <span class="food-emoji">☕</span>
+        <span class="food-name">un café</span>
+        <span class="food-price">2 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('chocolat')">
+        <span class="food-emoji">🍫</span>
+        <span class="food-name">un chocolat chaud</span>
+        <span class="food-price">4 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('jus')">
+        <span class="food-emoji">🧃</span>
+        <span class="food-name">un jus d'orange</span>
+        <span class="food-price">3 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('crepe')">
+        <span class="food-emoji">🥞</span>
+        <span class="food-name">une crêpe</span>
+        <span class="food-price">4 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('sandwich')">
+        <span class="food-emoji">🥪</span>
+        <span class="food-name">un sandwich</span>
+        <span class="food-price">5 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('pomme')">
+        <span class="food-emoji">🍎</span>
+        <span class="food-name">une pomme</span>
+        <span class="food-price">1 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('glace')">
+        <span class="food-emoji">🍨</span>
+        <span class="food-name">une glace</span>
+        <span class="food-price">3 €</span>
+      </button>
+    
+      <button class="food-btn" onclick="addToTray('eau')">
+        <span class="food-emoji">💧</span>
+        <span class="food-name">une eau minérale</span>
+        <span class="food-price">2 €</span>
+      </button>
+    </div>
+      </div>
+
+      <div class="tray-box">
+        <div class="box-title">
+          <span>🛎️ Le Plateau (Serveringsbrett)</span>
+          <span id="trayCount" style="font-size: 0.85rem; font-family: sans-serif; color: #666;">0 varer</span>
+        </div>
+        <div class="tray-surface" id="traySurface"></div>
+        <div class="tray-actions">
+          <button class="btn-clear" onclick="clearTray()">🗑️ Tøm</button>
+          <button class="btn-serve" onclick="checkTrayAndOpenCaisse()">Gå til kassen ➔</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- END / DIPLOMA SCREEN -->
+  <section id="screenEnd" class="screen">
+    <div class="diploma-card">
+      <div style="font-size: 2.8rem;">👨‍🍳🏆🇫🇷</div>
+      <h2 class="diploma-header">Diplôme du Café Panique</h2>
+      <p id="endReasonText" style="color: #5c4636; font-weight: 600;">Fin du service ! Slik gikk skiftet ditt:</p>
+      <div class="diploma-rank" id="endRankBadge">Serveur de Bistro</div>
+
+      <div class="diploma-stats">
+        <div class="stat-tile">
+          <div class="hud-label">Total Poengsum</div>
+          <div class="num" id="endScore">0</div>
+        </div>
+        <div class="stat-tile">
+          <div class="hud-label">Inntjent (inkl. tips)</div>
+          <div class="num" id="endEuros">0 €</div>
+        </div>
+        <div class="stat-tile">
+          <div class="hud-label">Kunder ekspedert</div>
+          <div class="num" id="endCustomers">0</div>
+        </div>
+        <div class="stat-tile">
+          <div class="hud-label">Beste Streak</div>
+          <div class="num" id="endBestStreak">0</div>
+        </div>
+      </div>
+
+      <div class="save-score-bar" id="saveScoreBox">
+        <input type="text" id="playerNameInput" placeholder="Skriv navnet ditt..." maxlength="20">
+        <button class="btn-serve" style="flex:0; white-space: nowrap;" onclick="saveScore()">💾 Lagre på topplista</button>
+      </div>
+
+      <div>
+        <span class="verify-code" id="verifyCode">BEVIS-KODE: CP-0000</span>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-serve" style="max-width: 220px;" onclick="restartSameMode()">🔄 Spill igjen</button>
+        <button class="btn-clear" onclick="showMenu()">🏠 Til hovedmeny</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- CASH REGISTER MODAL ("LA CAISSE") -->
+<div class="modal-backdrop" id="caisseModal">
+  <div class="modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+      <h2 style="font-family: Georgia, serif; color: var(--bistro-wood);">💶 La Caisse (Kassaapparat)</h2>
+      <button class="btn-audio" onclick="speakFrench('Ça fait combien, s\'il vous plaît ?')">🔊 « Ça fait combien ? »</button>
+    </div>
+    <p style="font-size: 0.92rem; color: #555;">Varene på brettet er helt riktige! Regn ut totalprisen og velg riktig beløp på <strong>fransk</strong>:</p>
+    <div class="receipt-box" id="receiptBox"></div>
+    <div style="font-weight: 800; color: var(--bistro-red); margin-bottom: 6px;">« Ça fait combien, s'il vous plaît ? » (Hvor mye blir det?)</div>
+    <div class="caisse-grid" id="caisseOptions"></div>
+  </div>
+</div>
+
+<!-- GLOSSARY MODAL ("GLOSEBOK") -->
+<div class="modal-backdrop" id="glossaryModal">
+  <div class="modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h2 style="font-family: Georgia, serif; color: var(--bistro-wood);">📖 Glosebok (Klikk for fransk uttale)</h2>
+      <button class="btn-clear" onclick="closeGlossary()">✖ Lukk</button>
+    </div>
+    <p style="font-size:0.88rem; color:#555; margin-bottom:10px;">Klikk på en boks for å høre hvordan ordet uttales på fransk:</p>
+
+    <h4 style="margin-top:10px; color:var(--bistro-red);">🥐 Mat og drikke</h4>
+    <div class="glossary-grid" id="glossaryFood">
+      <div class="glossary-item" onclick="speakFrench('un croissant')">
+        <span>🥐 <strong>un croissant</strong><br><small style="color:#666;">en croissant</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('une baguette')">
+        <span>🥖 <strong>une baguette</strong><br><small style="color:#666;">en bagett</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('un café')">
+        <span>☕ <strong>un café</strong><br><small style="color:#666;">en kaffe</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('un chocolat chaud')">
+        <span>🍫 <strong>un chocolat chaud</strong><br><small style="color:#666;">en varm sjokolade</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('un jus d\'orange')">
+        <span>🧃 <strong>un jus d'orange</strong><br><small style="color:#666;">en appelsinjuice</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('une crêpe')">
+        <span>🥞 <strong>une crêpe</strong><br><small style="color:#666;">en pannekake</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('un sandwich')">
+        <span>🥪 <strong>un sandwich</strong><br><small style="color:#666;">en sandwich</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('une pomme')">
+        <span>🍎 <strong>une pomme</strong><br><small style="color:#666;">et eple</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('une glace')">
+        <span>🍨 <strong>une glace</strong><br><small style="color:#666;">en iskrem</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('une eau minérale')">
+        <span>💧 <strong>une eau minérale</strong><br><small style="color:#666;">en flaske vann</small></span>
+        <span>🔊</span>
+      </div>
+    </div>
+
+    <h4 style="margin-top:14px; color:var(--bistro-red);">💬 Viktige uttrykk i bestillingen</h4>
+    <div class="glossary-grid" id="glossaryPhrases">
+      <div class="glossary-item" onclick="speakFrench('Je voudrais...')">
+        <span><strong>Je voudrais...</strong><br><small style="color:#666;">Jeg vil gjerne ha...</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('J\'aimerais...')">
+        <span><strong>J'aimerais...</strong><br><small style="color:#666;">Jeg skulle gjerne hatt...</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('Pour moi...')">
+        <span><strong>Pour moi...</strong><br><small style="color:#666;">Til meg...</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('s\'il vous plaît')">
+        <span><strong>s'il vous plaît</strong><br><small style="color:#666;">vær så snill</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('mais pas de...')">
+        <span><strong>mais pas de...</strong><br><small style="color:#666;">men IKKE noe...</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('et sans...')">
+        <span><strong>et sans...</strong><br><small style="color:#666;">og UTEN...</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('Ça fait combien ?')">
+        <span><strong>Ça fait combien ?</strong><br><small style="color:#666;">Hvor mye blir det?</small></span>
+        <span>🔊</span>
+      </div>
+    
+      <div class="glossary-item" onclick="speakFrench('Merci beaucoup !')">
+        <span><strong>Merci beaucoup !</strong><br><small style="color:#666;">Tusen takk!</small></span>
+        <span>🔊</span>
+      </div>
+    </div>
+
+    <h4 style="margin-top:14px; color:var(--bistro-red);">🔢 Tallene 1–30</h4>
+    <div class="glossary-grid" id="glossaryNumbers">
+        <div class="glossary-item" onclick="speakFrench('un')">
+          <span><strong>1</strong> = un</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('deux')">
+          <span><strong>2</strong> = deux</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('trois')">
+          <span><strong>3</strong> = trois</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('quatre')">
+          <span><strong>4</strong> = quatre</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('cinq')">
+          <span><strong>5</strong> = cinq</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('six')">
+          <span><strong>6</strong> = six</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('sept')">
+          <span><strong>7</strong> = sept</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('huit')">
+          <span><strong>8</strong> = huit</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('neuf')">
+          <span><strong>9</strong> = neuf</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('dix')">
+          <span><strong>10</strong> = dix</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('onze')">
+          <span><strong>11</strong> = onze</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('douze')">
+          <span><strong>12</strong> = douze</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('treize')">
+          <span><strong>13</strong> = treize</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('quatorze')">
+          <span><strong>14</strong> = quatorze</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('quinze')">
+          <span><strong>15</strong> = quinze</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('seize')">
+          <span><strong>16</strong> = seize</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('dix-sept')">
+          <span><strong>17</strong> = dix-sept</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('dix-huit')">
+          <span><strong>18</strong> = dix-huit</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('dix-neuf')">
+          <span><strong>19</strong> = dix-neuf</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt')">
+          <span><strong>20</strong> = vingt</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt et un')">
+          <span><strong>21</strong> = vingt et un</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-deux')">
+          <span><strong>22</strong> = vingt-deux</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-trois')">
+          <span><strong>23</strong> = vingt-trois</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-quatre')">
+          <span><strong>24</strong> = vingt-quatre</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-cinq')">
+          <span><strong>25</strong> = vingt-cinq</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-six')">
+          <span><strong>26</strong> = vingt-six</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-sept')">
+          <span><strong>27</strong> = vingt-sept</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-huit')">
+          <span><strong>28</strong> = vingt-huit</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('vingt-neuf')">
+          <span><strong>29</strong> = vingt-neuf</span>
+          <span>🔊</span>
+        </div>
+      
+        <div class="glossary-item" onclick="speakFrench('trente')">
+          <span><strong>30</strong> = trente</span>
+          <span>🔊</span>
+        </div>
+      </div>
+  </div>
+</div>
+
+<script>
+  // --- DATA: MENU ITEMS ---
+  const MENU_ITEMS = [
+    { id: 'croissant', gender: 'm', fr: 'un croissant', plural: 'croissants', neg: 'de croissant', no: 'en croissant', price: 2, emoji: '🥐' },
+    { id: 'baguette', gender: 'f', fr: 'une baguette', plural: 'baguettes', neg: 'de baguette', no: 'en bagett', price: 3, emoji: '🥖' },
+    { id: 'cafe', gender: 'm', fr: 'un café', plural: 'cafés', neg: 'de café', no: 'en kaffe', price: 2, emoji: '☕' },
+    { id: 'chocolat', gender: 'm', fr: 'un chocolat chaud', plural: 'chocolats chauds', neg: 'de chocolat chaud', no: 'en varm sjokolade', price: 4, emoji: '🍫' },
+    { id: 'jus', gender: 'm', fr: "un jus d'orange", plural: "jus d'orange", neg: "de jus d'orange", no: 'en appelsinjuice', price: 3, emoji: '🧃' },
+    { id: 'crepe', gender: 'f', fr: 'une crêpe', plural: 'crêpes', neg: 'de crêpe', no: 'en pannekake', price: 4, emoji: '🥞' },
+    { id: 'sandwich', gender: 'm', fr: 'un sandwich', plural: 'sandwichs', neg: 'de sandwich', no: 'en sandwich', price: 5, emoji: '🥪' },
+    { id: 'pomme', gender: 'f', fr: 'une pomme', plural: 'pommes', neg: 'de pomme', no: 'et eple', price: 1, emoji: '🍎' },
+    { id: 'glace', gender: 'f', fr: 'une glace', plural: 'glaces', neg: 'de glace', no: 'en iskrem', price: 3, emoji: '🍨' },
+    { id: 'eau', gender: 'f', fr: 'une eau minérale', plural: 'eaux minérales', neg: "d'eau minérale", no: 'en flaske vann', price: 2, emoji: '💧' }
+  ];
+
+  const FRENCH_NUMBERS = {
+    1: 'un', 2: 'deux', 3: 'trois', 4: 'quatre', 5: 'cinq',
+    6: 'six', 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix',
+    11: 'onze', 12: 'douze', 13: 'treize', 14: 'quatorze', 15: 'quinze',
+    16: 'seize', 17: 'dix-sept', 18: 'dix-huit', 19: 'dix-neuf', 20: 'vingt',
+    21: 'vingt et un', 22: 'vingt-deux', 23: 'vingt-trois', 24: 'vingt-quatre', 25: 'vingt-cinq',
+    26: 'vingt-six', 27: 'vingt-sept', 28: 'vingt-huit', 29: 'vingt-neuf', 30: 'trente'
+  };
+
+  const CUSTOMERS = [
+    { name: 'Camille', emoji: '👩‍🎨' },
+    { name: 'Lucas', emoji: '🧑‍🎓' },
+    { name: 'Chloé', emoji: '👩‍💼' },
+    { name: 'Antoine', emoji: '🧔‍♂️' },
+    { name: 'Manon', emoji: '👱‍♀️' },
+    { name: 'Hugo', emoji: '🕵️‍♂️' },
+    { name: 'Léa', emoji: '👩‍🎤' },
+    { name: 'Monsieur Martin', emoji: '👴' },
+    { name: 'Madame Dubois', emoji: '👵' }
+  ];
+
+  const PHRASES = [
+    { fr: 'Je voudrais...', no: 'Jeg vil gjerne ha...' },
+    { fr: "J'aimerais...", no: 'Jeg skulle gjerne hatt...' },
+    { fr: 'Pour moi...', no: 'Til meg...' },
+    { fr: "s'il vous plaît", no: 'vær så snill' },
+    { fr: 'mais pas de...', no: 'men IKKE noe...' },
+    { fr: 'et sans...', no: 'og UTEN...' },
+    { fr: 'Ça fait combien ?', no: 'Hvor mye blir det?' },
+    { fr: 'Merci beaucoup !', no: 'Tusen takk!' }
+  ];
+
+  // --- STATE ---
+  let state = {
+    mode: 'rush',
+    score: 0,
+    euros: 0,
+    customersServed: 0,
+    lives: 3,
+    streak: 1,
+    bestStreak: 1,
+    calmMode: false,
+    whiteboardMode: false,
+    showBreakdown: false,
+    showLabels: true,
+    soundEnabled: true,
+    currentOrder: null, // { wanted: {id: count}, forbidden: [id], text: "", negPhrase: "" }
+    tray: [], // array of item ids
+    timerMax: 30,
+    timerLeft: 30,
+    timerInterval: null,
+    sprintTimeLeft: 120,
+    firstTryOnCurrentCustomer: true,
+    awaitingNextCustomerClick: false,
+    clearConfirmPending: false
+  };
+
+  // --- WEB AUDIO SYNTHESIZER ---
+  let audioCtx = null;
+  function playTone(type) {
+    if (!state.soundEnabled) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'pop') {
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      } else if (type === 'bell') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1174, now + 0.08);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      } else if (type === 'cash') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987, now);
+        osc.frequency.setValueAtTime(1318, now + 0.09);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      }
+    } catch (e) {}
+  }
+
+  // --- SPEECH SYNTHESIS (FR-FR) ---
+  function speakFrench(text, rate = 0.92) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'fr-FR';
+    utter.rate = rate;
+    const voices = window.speechSynthesis.getVoices();
+    const frVoice = voices.find(v => v.lang.toLowerCase().startsWith('fr'));
+    if (frVoice) utter.voice = frVoice;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function speakOrder(rate) {
+    if (state.currentOrder) {
+      speakFrench(state.currentOrder.text, rate);
+    }
+  }
+
+  // --- INITIALIZATION ---
+  function init() {
+    renderCounter();
+    buildGlossary();
+    renderLeaderboard();
+    syncTopButtonsUI();
+  }
+
+  function renderCounter() {
+    const grid = document.getElementById('itemsGrid');
+    grid.className = 'items-grid' + (state.showLabels ? '' : ' hide-labels');
+    grid.innerHTML = MENU_ITEMS.map(item => `
+      <button class="food-btn" onclick="addToTray('${item.id}')">
+        <span class="food-emoji">${item.emoji}</span>
+        <span class="food-name">${item.fr}</span>
+        <span class="food-price">${item.price} €</span>
+      </button>
+    `).join('');
+  }
+
+  // --- WHITEBOARD & CALM MODE CONTROLS ---
+  function syncTopButtonsUI() {
+    const btnCalm = document.getElementById('btnCalm');
+    btnCalm.textContent = state.calmMode ? '🧘 Rolig modus: PÅ' : '🧘 Rolig modus: AV';
+    btnCalm.classList.toggle('active', state.calmMode);
+
+    const btnWhiteboard = document.getElementById('btnWhiteboard');
+    btnWhiteboard.textContent = state.whiteboardMode ? '👨‍🏫 Tavlemodus: PÅ' : '👨‍🏫 Tavlemodus: AV';
+    btnWhiteboard.classList.toggle('teacher-active', state.whiteboardMode);
+
+    document.body.classList.toggle('whiteboard-active', state.whiteboardMode);
+
+    const timerWrap = document.getElementById('timerWrap');
+    const calmBadge = document.getElementById('calmStatusBadge');
+    if (timerWrap && calmBadge) {
+      const noTimePressure = state.calmMode || state.whiteboardMode;
+      timerWrap.style.display = noTimePressure ? 'none' : 'block';
+      calmBadge.style.display = noTimePressure ? 'inline-block' : 'none';
+      calmBadge.textContent = state.whiteboardMode
+        ? '👨‍🏫 Tavlemodus aktiv – Ingen tidsfrist'
+        : '🧘 Rolig modus aktiv – Ingen tidsfrist';
+    }
+
+    updateTeacherToolbarUI();
+  }
+
+  function toggleCalmMode() {
+    state.calmMode = !state.calmMode;
+    syncTopButtonsUI();
+    updateHUD();
+  }
+
+  function toggleWhiteboardMode() {
+    state.whiteboardMode = !state.whiteboardMode;
+    if (state.whiteboardMode) {
+      state.calmMode = true;
+      state.showBreakdown = true;
+      // If currently on the start menu, jump straight into a level 1 whiteboard session
+      if (document.getElementById('screenMenu').classList.contains('active')) {
+        startGame('lvl1');
+      }
+    }
+    syncTopButtonsUI();
+    renderBreakdown();
+    updateHUD();
+  }
+
+  function startWhiteboardSession() {
+    state.whiteboardMode = true;
+    state.calmMode = true;
+    state.showBreakdown = true;
+    syncTopButtonsUI();
+    startGame('lvl1');
+  }
+
+  function toggleBreakdown() {
+    state.showBreakdown = !state.showBreakdown;
+    updateTeacherToolbarUI();
+    renderBreakdown();
+  }
+
+  function switchTeacherLevel(lvlMode) {
+    state.mode = lvlMode;
+    updateTeacherToolbarUI();
+    updateHUD();
+    nextCustomer();
+  }
+
+  function updateTeacherToolbarUI() {
+    const btnBreak = document.getElementById('btnToggleBreakdown');
+    if (btnBreak) {
+      btnBreak.classList.toggle('active', state.showBreakdown);
+      btnBreak.textContent = state.showBreakdown ? '🔍 Skjul språkhjelp' : '🔍 Vis språkhjelp / struktur';
+    }
+    const effLvl = getEffectiveLevel();
+    ['1', '2', '3'].forEach(n => {
+      const b = document.getElementById('btnTeachLvl' + n);
+      if (b) b.classList.toggle('active', String(effLvl) === n);
+    });
+  }
+
+  function renderBreakdown() {
+    const box = document.getElementById('grammarBreakdown');
+    if (!box) return;
+    if (!state.whiteboardMode || !state.showBreakdown || !state.currentOrder) {
+      box.classList.remove('show');
+      return;
+    }
+
+    const chips = [];
+    let totalEuros = 0;
+
+    for (const [id, qty] of Object.entries(state.currentOrder.wanted)) {
+      const item = MENU_ITEMS.find(m => m.id === id);
+      const sub = item.price * qty;
+      totalEuros += sub;
+
+      if (qty === 1) {
+        const genderClass = item.gender === 'm' ? 'masc' : 'fem';
+        const genderLabel = item.gender === 'm' ? 'hankjønn (un)' : 'hunkjønn (une)';
+        chips.push(`
+          <span class="g-chip ${genderClass}">
+            ${item.emoji} <strong>${item.fr}</strong> = 1x ${item.no} <em>(${genderLabel}, ${item.price} €)</em>
+          </span>
+        `);
+      } else {
+        const numWord = FRENCH_NUMBERS[qty];
+        chips.push(`
+          <span class="g-chip plural">
+            ${item.emoji} <strong>${numWord} ${item.plural}</strong> = ${qty}x ${item.no.replace(/^(en|et)\s+/i, '')} <em>(flertall -s, ${qty}×${item.price}€ = ${sub} €)</em>
+          </span>
+        `);
+      }
+    }
+
+    state.currentOrder.forbidden.forEach(fId => {
+      const item = MENU_ITEMS.find(m => m.id === fId);
+      chips.push(`
+        <span class="g-chip neg">
+          🚫 <strong>${state.currentOrder.negPhrase}</strong> = IKKE ${item.no}! <em>(Nektelse – skal ikke på brettet)</em>
+        </span>
+      `);
+    });
+
+    const totalWord = FRENCH_NUMBERS[totalEuros] || totalEuros;
+
+    box.innerHTML = `
+      <div style="font-weight: 800; color: #1e3a8a; font-size: 0.88rem; text-transform: uppercase;">
+        🧩 Språklig nedbrytning for klassen:
+      </div>
+      <div class="grammar-chips">${chips.join('')}</div>
+      <div style="margin-top: 8px; font-size: 0.88rem; color: #334155;">
+        💶 <strong>Summen i kassen:</strong> ${totalEuros} € ➔ <em>« Ça fait <strong>${totalWord}</strong> euros »</em>
+      </div>
+    `;
+    box.classList.add('show');
+  }
+
+  function toggleLabels() {
+    state.showLabels = !state.showLabels;
+    const btn = document.getElementById('btnLabels');
+    btn.textContent = state.showLabels ? '🏷️ Merkelapper: PÅ' : '🏷️ Merkelapper: AV';
+    btn.classList.toggle('active', state.showLabels);
+    renderCounter();
+  }
+
+  function toggleSound() {
+    state.soundEnabled = !state.soundEnabled;
+    const btn = document.getElementById('btnSound');
+    btn.textContent = state.soundEnabled ? '🔊 Lyd: PÅ' : '🔇 Lyd: AV';
+    btn.classList.toggle('active', state.soundEnabled);
+  }
+
+  // --- NAVIGATION ---
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showMenu() {
+    clearInterval(state.timerInterval);
+    document.getElementById('caisseModal').classList.remove('show');
+    renderLeaderboard();
+    showScreen('screenMenu');
+  }
+
+  function restartSameMode() {
+    startGame(state.mode);
+  }
+
+  // --- START GAME ---
+  function startGame(mode) {
+    state.mode = mode;
+    state.score = 0;
+    state.euros = 0;
+    state.customersServed = 0;
+    state.lives = 3;
+    state.streak = 1;
+    state.bestStreak = 1;
+    state.sprintTimeLeft = 120;
+    state.awaitingNextCustomerClick = false;
+
+    // Respect teacher's Calm Mode / Whiteboard Mode in ALL modes (never force it off!)
+    syncTopButtonsUI();
+    updateHUD();
+    showScreen('screenGame');
+    nextCustomer();
+
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(gameTick, 250);
+  }
+
+  function updateHUD() {
+    const modeLabel = document.getElementById('hudModeLabel');
+    const livesEl = document.getElementById('hudLives');
+
+    if (state.whiteboardMode) {
+      const lvl = getEffectiveLevel();
+      modeLabel.textContent = '👨‍🏫 Tavlemodus';
+      livesEl.textContent = `Nivå ${lvl} (Uten tid)`;
+    } else if (state.mode === 'rush') {
+      modeLabel.textContent = state.calmMode ? 'Rushtid (Rolig)' : 'Liv igjen (Rushtid)';
+      livesEl.textContent = '❤️'.repeat(Math.max(0, state.lives)) + '🖤'.repeat(Math.max(0, 3 - state.lives));
+    } else if (state.mode === 'sprint') {
+      modeLabel.textContent = state.calmMode ? 'Duell (Pauset)' : 'Tid igjen (Duell)';
+      const mins = Math.floor(state.sprintTimeLeft / 60);
+      const secs = Math.floor(state.sprintTimeLeft % 60).toString().padStart(2, '0');
+      livesEl.textContent = state.calmMode ? `🧘 ${mins}:${secs}` : `⏱️ ${mins}:${secs}`;
+    } else {
+      modeLabel.textContent = 'Treningsmodus';
+      livesEl.textContent = state.mode === 'lvl1' ? 'Nivå 1' : state.mode === 'lvl2' ? 'Nivå 2' : 'Nivå 3';
+    }
+
+    document.getElementById('hudScore').textContent = state.score;
+    document.getElementById('hudEuros').textContent = state.euros + ' €';
+    document.getElementById('hudCustomers').textContent = state.customersServed;
+    document.getElementById('hudStreak').textContent = `🔥 x${state.streak}`;
+  }
+
+  // --- GENERATE CUSTOMER ORDER ---
+  function getEffectiveLevel() {
+    if (state.mode === 'lvl1') return 1;
+    if (state.mode === 'lvl2') return 2;
+    if (state.mode === 'lvl3') return 3;
+    if (state.mode === 'rush') {
+      if (state.customersServed < 3) return 1;
+      if (state.customersServed < 6) return 2;
+      return 3;
+    }
+    if (state.mode === 'sprint') {
+      if (state.customersServed < 2) return 1;
+      if (state.customersServed < 5) return 2;
+      return 3;
+    }
+    return 1;
+  }
+
+  function nextCustomer() {
+    hideFeedback();
+    state.tray = [];
+    state.firstTryOnCurrentCustomer = true;
+    state.awaitingNextCustomerClick = false;
+    renderTray();
+
+    const cust = CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)];
+    document.getElementById('custEmoji').textContent = cust.emoji;
+    document.getElementById('custName').textContent = cust.name;
+
+    const lvl = getEffectiveLevel();
+    const shuffled = [...MENU_ITEMS].sort(() => Math.random() - 0.5);
+
+    const numWanted = lvl === 1 ? (Math.random() < 0.45 ? 1 : 2) : (Math.random() < 0.4 ? 2 : 3);
+    const wantedItems = shuffled.slice(0, numWanted);
+    const wantedMap = {};
+    const parts = [];
+
+    wantedItems.forEach(item => {
+      let qty = 1;
+      if (lvl >= 2 && Math.random() < 0.45) {
+        qty = Math.random() < 0.75 ? 2 : 3;
+      }
+      wantedMap[item.id] = qty;
+      if (qty === 1) {
+        parts.push(item.fr);
+      } else {
+        const numWord = qty === 2 ? 'deux' : 'trois';
+        parts.push(`${numWord} ${item.plural}`);
+      }
+    });
+
+    const greetings = ['Bonjour !', 'Salut !', 'Bonsoir !', 'Bonjour, excusez-moi !'];
+    const intros = ['Je voudrais', "J'aimerais", 'Je prends', 'Pour moi :'];
+    const greet = greetings[Math.floor(Math.random() * greetings.length)];
+    const intro = intros[Math.floor(Math.random() * intros.length)];
+
+    let orderStr = '';
+    if (parts.length === 1) {
+      orderStr = parts[0];
+    } else if (parts.length === 2) {
+      orderStr = `${parts[0]} et ${parts[1]}`;
+    } else {
+      orderStr = `${parts[0]}, ${parts[1]} et ${parts[2]}`;
+    }
+
+    const forbidden = [];
+    let negText = '';
+    let cleanNegPhrase = '';
+    if (lvl === 3) {
+      const trapItem = shuffled[numWanted];
+      forbidden.push(trapItem.id);
+      if (Math.random() < 0.5) {
+        cleanNegPhrase = `mais pas ${trapItem.neg}`;
+        negText = `, ${cleanNegPhrase}`;
+      } else {
+        const bareNoun = trapItem.fr.replace(/^une?\s+/i, '');
+        cleanNegPhrase = `et sans ${bareNoun}`;
+        negText = `, ${cleanNegPhrase}`;
+      }
+    }
+
+    const fullText = `${greet} ${intro} ${orderStr}${negText}, s'il vous plaît.`;
+    state.currentOrder = {
+      wanted: wantedMap,
+      forbidden: forbidden,
+      text: fullText,
+      negPhrase: cleanNegPhrase
+    };
+
+    document.getElementById('orderText').textContent = `« ${fullText} »`;
+
+    // Set customer patience timer
+    if (state.mode === 'rush') {
+      state.timerMax = Math.max(11, 32 - state.customersServed * 1.8);
+    } else {
+      state.timerMax = 30;
+    }
+    state.timerLeft = state.timerMax;
+    updateTimerBar();
+    updateTeacherToolbarUI();
+    renderBreakdown();
+    playTone('bell');
+  }
+
+  // --- TIMER LOOP ---
+  function gameTick() {
+    if (state.calmMode || state.whiteboardMode) return;
+    if (state.awaitingNextCustomerClick) return;
+    if (document.getElementById('caisseModal').classList.contains('show')) return;
+    if (document.getElementById('glossaryModal').classList.contains('show')) return;
+
+    if (state.mode === 'sprint') {
+      state.sprintTimeLeft -= 0.25;
+      updateHUD();
+      if (state.sprintTimeLeft <= 0) {
+        endGame('Tiden er ute! 2-minutters duellen er ferdig.');
+        return;
+      }
+    }
+
+    state.timerLeft -= 0.25;
+    updateTimerBar();
+    if (state.timerLeft <= 0) {
+      handleMistake('⏰ Tiden gikk ut! Kunden gikk sin vei (« Trop lent ! »).', true);
+    }
+  }
+
+  function updateTimerBar() {
+    const bar = document.getElementById('timerBar');
+    const pct = Math.max(0, (state.timerLeft / state.timerMax) * 100);
+    bar.style.width = pct + '%';
+    if (pct > 50) bar.style.backgroundColor = '#1f7a4c';
+    else if (pct > 25) bar.style.backgroundColor = '#eab308';
+    else bar.style.backgroundColor = '#dc2626';
+  }
+
+  // --- TRAY MANAGEMENT ---
+  function addToTray(itemId) {
+    if (state.awaitingNextCustomerClick) return;
+    if (state.tray.length >= 9) return;
+    state.tray.push(itemId);
+    playTone('pop');
+    renderTray();
+  }
+
+  function removeFromTray(index) {
+    if (state.awaitingNextCustomerClick) return;
+    state.tray.splice(index, 1);
+    playTone('pop');
+    renderTray();
+  }
+
+  function clearTray() {
+    if (state.awaitingNextCustomerClick) return;
+    state.tray = [];
+    renderTray();
+  }
+
+  function renderTray() {
+    const surf = document.getElementById('traySurface');
+    document.getElementById('trayCount').textContent = `${state.tray.length} varer`;
+    if (state.tray.length === 0) {
+      surf.innerHTML = `<div class="tray-empty">Brettet er tomt. Klikk på matvarene til venstre!</div>`;
+      return;
+    }
+    surf.innerHTML = state.tray.map((id, idx) => {
+      const item = MENU_ITEMS.find(m => m.id === id);
+      return `<div class="tray-pill" onclick="removeFromTray(${idx})" title="Klikk for å fjerne">
+        <span>${item.emoji}</span>
+        <span>${item.fr}</span>
+        <span style="color:#dc2626; font-size:0.8rem;">✖</span>
+      </div>`;
+    }).join('');
+  }
+
+  // --- VALIDATE TRAY & OPEN CAISSE ---
+  function checkTrayAndOpenCaisse() {
+    if (state.awaitingNextCustomerClick) {
+      nextCustomer();
+      return;
+    }
+    if (state.tray.length === 0) {
+      showFeedback('Du må legge minst én vare på brettet først!', 'error');
+      playTone('error');
+      return;
+    }
+
+    const trayCounts = {};
+    state.tray.forEach(id => { trayCounts[id] = (trayCounts[id] || 0) + 1; });
+
+    // 1. Check forbidden negation items first
+    for (const fId of state.currentOrder.forbidden) {
+      if (trayCounts[fId]) {
+        const item = MENU_ITEMS.find(m => m.id === fId);
+        handleMistake(`Obs! Kunden sa « pas ${item.neg} / sans » – de ville IKKE ha ${item.no} (${item.fr})!`, false);
+        return;
+      }
+    }
+
+    // 2. Check unwanted items
+    for (const id of Object.keys(trayCounts)) {
+      if (!state.currentOrder.wanted[id]) {
+        const item = MENU_ITEMS.find(m => m.id === id);
+        handleMistake(`Kunden bestilte ikke ${item.fr} (${item.no}). Fjern den fra brettet!`, false);
+        return;
+      }
+    }
+
+    // 3. Check quantities
+    for (const [id, neededQty] of Object.entries(state.currentOrder.wanted)) {
+      const actualQty = trayCounts[id] || 0;
+      const item = MENU_ITEMS.find(m => m.id === id);
+      if (actualQty === 0) {
+        handleMistake(`Du mangler ${item.fr} (${item.no}) på brettet!`, false);
+        return;
+      }
+      if (actualQty !== neededQty) {
+        const frNum = FRENCH_NUMBERS[neededQty];
+        handleMistake(`Feil antall av ${item.fr}: Kunden ba om « ${frNum} » (${neededQty} stk), men du har lagt på ${actualQty} stk.`, false);
+        return;
+      }
+    }
+
+    // Everything on tray is correct -> Open La Caisse!
+    openCaisseModal();
+  }
+
+  function openCaisseModal() {
+    let total = 0;
+    const linesHtml = [];
+    for (const [id, qty] of Object.entries(state.currentOrder.wanted)) {
+      const item = MENU_ITEMS.find(m => m.id === id);
+      const sub = item.price * qty;
+      total += sub;
+      linesHtml.push(`
+        <div class="receipt-line">
+          <span>${qty}x ${item.emoji} ${item.fr} (${item.price} €)</span>
+          <strong>${sub} €</strong>
+        </div>
+      `);
+    }
+
+    document.getElementById('receiptBox').innerHTML = linesHtml.join('');
+
+    // Build 4 French number options
+    const options = new Set([total]);
+    while (options.size < 4) {
+      const offset = (Math.floor(Math.random() * 7) - 3);
+      const candidate = total + offset;
+      if (candidate >= 1 && candidate <= 30 && candidate !== total) {
+        options.add(candidate);
+      } else {
+        options.add(Math.max(1, Math.min(30, total + options.size)));
+      }
+    }
+
+    const shuffledOpts = Array.from(options).sort(() => Math.random() - 0.5);
+    document.getElementById('caisseOptions').innerHTML = shuffledOpts.map(num => {
+      const word = FRENCH_NUMBERS[num] || num;
+      return `<button class="caisse-btn" onclick="submitPayment(${num}, ${total})">
+        « Ça fait ${word} euros »
+      </button>`;
+    }).join('');
+
+    document.getElementById('caisseModal').classList.add('show');
+  }
+
+  function submitPayment(chosen, correctTotal) {
+    const chosenWord = FRENCH_NUMBERS[chosen];
+    speakFrench(`Ça fait ${chosenWord} euros`);
+
+    if (chosen === correctTotal) {
+      document.getElementById('caisseModal').classList.remove('show');
+      playTone('cash');
+
+      const speedBonus = (state.calmMode || state.whiteboardMode)
+        ? 3
+        : Math.max(1, Math.round((state.timerLeft / state.timerMax) * 5));
+      const basePoints = 100 * state.streak;
+      const tipPoints = speedBonus * 10;
+      state.score += basePoints + tipPoints;
+      state.euros += correctTotal + (state.firstTryOnCurrentCustomer ? 2 : 0);
+      state.customersServed += 1;
+
+      if (state.firstTryOnCurrentCustomer) {
+        state.streak = Math.min(5, state.streak + 1);
+        if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+      }
+
+      updateHUD();
+
+      // In Tavlemodus or Calm Mode, let the teacher/student click "Neste kunde ⏭️" when ready
+      if (state.whiteboardMode || state.calmMode) {
+        state.awaitingNextCustomerClick = true;
+        showFeedback(
+          `🎉 Très bien ! « Ça fait ${chosenWord} euros » (${correctTotal} €) er helt riktig!`,
+          'success',
+          true
+        );
+      } else {
+        showFeedback(`🎉 Très bien ! « Merci beaucoup ! » (+${basePoints + tipPoints} poeng)`, 'success', false);
+        setTimeout(() => {
+          nextCustomer();
+        }, 950);
+      }
+    } else {
+      document.getElementById('caisseModal').classList.remove('show');
+      handleMistake(`Feil beløp i kassen! « ${chosenWord} » betyr ${chosen}, men riktig sum er ${correctTotal} €.`, false);
+    }
+  }
+
+  function handleMistake(msg, nextCustImmediately) {
+    playTone('error');
+    state.firstTryOnCurrentCustomer = false;
+    state.streak = 1;
+
+    // Only deduct lives if NOT in Whiteboard/Calm mode
+    if (state.mode === 'rush' && !state.whiteboardMode && !state.calmMode) {
+      state.lives -= 1;
+      updateHUD();
+      if (state.lives <= 0) {
+        endGame('Du gikk tom for liv i Rushtid i Paris!');
+        return;
+      }
+    } else {
+      updateHUD();
+    }
+
+    showFeedback(msg, 'error', false);
+    if (nextCustImmediately) {
+      setTimeout(() => nextCustomer(), 1200);
+    }
+  }
+
+  function showFeedback(msg, type, includeNextButton = false) {
+    const b = document.getElementById('feedbackBanner');
+    b.className = `feedback-banner show ${type}`;
+    if (includeNextButton) {
+      b.innerHTML = `
+        <span>${msg}</span>
+        <button class="btn-next-customer" onclick="nextCustomer()">Neste kunde ⏭️</button>
+      `;
+    } else {
+      b.innerHTML = `<span>${msg}</span>`;
+    }
+  }
+
+  function hideFeedback() {
+    document.getElementById('feedbackBanner').className = 'feedback-banner';
+  }
+
+  // --- END GAME & DIPLOMA ---
+  function getFrenchRank(score) {
+    if (score >= 1500) return '👑 Légende de Paris';
+    if (score >= 1000) return '⭐⭐⭐ Grand Chef de Cuisine';
+    if (score >= 600) return '⭐⭐ Chef de Rang';
+    if (score >= 300) return '⭐ Serveur de Bistro';
+    return '🥐 Stagiaire au Café';
+  }
+
+  function endGame(reasonText) {
+    clearInterval(state.timerInterval);
+    document.getElementById('caisseModal').classList.remove('show');
+
+    document.getElementById('endReasonText').textContent = reasonText;
+    document.getElementById('endScore').textContent = state.score;
+    document.getElementById('endEuros').textContent = state.euros + ' €';
+    document.getElementById('endCustomers').textContent = state.customersServed;
+    document.getElementById('endBestStreak').textContent = 'x' + state.bestStreak;
+    document.getElementById('endRankBadge').textContent = getFrenchRank(state.score);
+
+    const code = `CP-${state.mode.toUpperCase()}-${state.score}-${state.customersServed * 7 + 13}`;
+    document.getElementById('verifyCode').textContent = `BEVIS-KODE: ${code}`;
+    document.getElementById('saveScoreBox').style.display = 'flex';
+
+    showScreen('screenEnd');
+  }
+
+  // --- HIGHSCORE STORAGE ---
+  function saveScore() {
+    const input = document.getElementById('playerNameInput');
+    const name = (input.value || 'Anonym Elev').trim();
+    const list = JSON.parse(localStorage.getItem('cafePaniqueScores') || '[]');
+    const modeName = state.mode === 'rush' ? '🔥 Rushtid' : state.mode === 'sprint' ? '⚡ 2-Min Duell' : state.mode.toUpperCase();
+
+    list.push({
+      name,
+      mode: modeName,
+      score: state.score,
+      customers: state.customersServed,
+      rank: getFrenchRank(state.score)
+    });
+
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem('cafePaniqueScores', JSON.stringify(list.slice(0, 15)));
+    document.getElementById('saveScoreBox').style.display = 'none';
+    renderLeaderboard();
+  }
+
+  function renderLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    const list = JSON.parse(localStorage.getItem('cafePaniqueScores') || '[]');
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Ingen poengsummer lagret ennå. Spill en runde for å komme på pallen!</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map((row, i) => `
+      <tr>
+        <td><strong>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</strong></td>
+        <td><strong>${row.name}</strong></td>
+        <td>${row.mode}</td>
+        <td style="color:var(--bistro-red); font-weight:800;">${row.score}</td>
+        <td>${row.customers}</td>
+        <td>${row.rank}</td>
+      </tr>
+    `).join('');
+  }
+
+  function clearLeaderboard() {
+    const btn = document.getElementById('btnClearScores');
+    if (!state.clearConfirmPending) {
+      state.clearConfirmPending = true;
+      btn.textContent = 'Sikker? Klikk igjen';
+      btn.style.background = '#fee2e2';
+      btn.style.color = '#991b1b';
+      setTimeout(() => {
+        state.clearConfirmPending = false;
+        btn.textContent = 'Nullstill liste';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 3000);
+      return;
+    }
+    state.clearConfirmPending = false;
+    btn.textContent = 'Nullstill liste';
+    btn.style.background = '';
+    btn.style.color = '';
+    localStorage.removeItem('cafePaniqueScores');
+    renderLeaderboard();
+  }
+
+  // --- GLOSSARY MODAL ---
+  function buildGlossary() {
+    document.getElementById('glossaryFood').innerHTML = MENU_ITEMS.map(item => `
+      <div class="glossary-item" onclick="speakFrench('${item.fr.replace(/'/g, "\\'")}')">
+        <span>${item.emoji} <strong>${item.fr}</strong><br><small style="color:#666;">${item.no}</small></span>
+        <span>🔊</span>
+      </div>
+    `).join('');
+
+    document.getElementById('glossaryPhrases').innerHTML = PHRASES.map(p => `
+      <div class="glossary-item" onclick="speakFrench('${p.fr.replace(/'/g, "\\'")}')">
+        <span><strong>${p.fr}</strong><br><small style="color:#666;">${p.no}</small></span>
+        <span>🔊</span>
+      </div>
+    `).join('');
+
+    const numsHtml = [];
+    for (let i = 1; i <= 30; i++) {
+      const w = FRENCH_NUMBERS[i];
+      numsHtml.push(`
+        <div class="glossary-item" onclick="speakFrench('${w}')">
+          <span><strong>${i}</strong> = ${w}</span>
+          <span>🔊</span>
+        </div>
+      `);
+    }
+    document.getElementById('glossaryNumbers').innerHTML = numsHtml.join('');
+  }
+
+  function openGlossary() {
+    document.getElementById('glossaryModal').classList.add('show');
+  }
+
+  function closeGlossary() {
+    document.getElementById('glossaryModal').classList.remove('show');
+  }
+
+  // --- DOWNLOAD SELF-CONTAINED HTML FILE ---
+  function downloadHtmlFile() {
+    const clone = document.documentElement.cloneNode(true);
+    // Ensure downloaded file opens cleanly on the main menu
+    clone.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const menuScreen = clone.querySelector('#screenMenu');
+    if (menuScreen) menuScreen.classList.add('active');
+    clone.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('show'));
+    const bodyEl = clone.querySelector('body');
+    if (bodyEl) bodyEl.classList.remove('whiteboard-active');
+
+    const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cafe_panique.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body></html>
