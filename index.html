@@ -1,1433 +1,735 @@
 <!DOCTYPE html>
-<html lang="no"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
-        window.__firebase_config = firebaseConfig;
-        window.__initial_auth_token = initialAuthToken;
-        window.__app_id = appId;
-            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNzcwMzc1OTEwMTk2ODA0ODY0MCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2NmNWNmM2U2ZGQyZDVhYzNfY2FmZV9wYW5pcXVlLmh0bWwtNjA0In0sImV4cCI6MTc5MjA5NTgzMSwiaWF0IjoxNzkyMDkyMjMxLCJhbGciOiJSUzI1NiJ9.Tf8yIq6a2v2QPedumy475AAAvJYSQsqw9qBKK43v3zx26cbGsEPryDM2H9o_ky79Y7O6P8pxtIopGf-WjA_sAeKjFqDY9WD-nIM6kHPRlJdMnxgKiJMpjuYZTGdFaNoCDZsPWMe5cPySFarARr4NecaMD9GH_6za0rXpQeOikAGSrVIb0AT9ehszjboZ-FC5NIINdsDNM-AM1oetS9TP-Z06nmqX64FrfcSBzzRgmHZsea_jJ2IlaDUplw6ooEcJKhJ6ScM9UnBK3KKXoyi-kzGdNq851sa5t_QWgosKRzzImJ6-DobFRwYvxol8FeQW5gwzQGQQisa3hRDHdfhhOw","c_cf5cf3e6dd2d5ac3_cafe_panique.html-604")</script><script data-bard-client-injected="true">
-  document.addEventListener('input', (event) => {
-    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
-      const clonedDoc = document.cloneNode(true);
-      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
-      injectedScripts.forEach(el => el.remove());
-      window.parent.postMessage({
-        type: 'inlineEdit',
-        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
-      }, '*');
-    }
-  });
-</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
-</script><script data-bard-client-injected="true">(function() {
-  const SCROLL_KEYS = new Set([
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
-  ]);
-  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
-
-  function isTextEntryTarget(target) {
-    if (!target) return false;
-    const tagName = target.tagName;
-    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
-        tagName === 'SELECT' || target.isContentEditable === true;
-  }
-
-  // An element absorbs the key only if it both overflows on the axis being
-  // scrolled and is configured to scroll on that axis. The cheap dimension
-  // test runs first because getComputedStyle forces a style recalc, and this
-  // runs on every keypress. Each axis is read from its own longhand: the
-  // 'overflow' shorthand serializes as two values when the axes differ, which
-  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
-  function canScroll(node, horizontal) {
-    const overflows = horizontal ? node.scrollWidth > node.clientWidth
-                                 : node.scrollHeight > node.clientHeight;
-    if (!overflows) return false;
-    const style = window.getComputedStyle(node);
-    const overflow = horizontal ? style.overflowX : style.overflowY;
-    return overflow === 'auto' || overflow === 'scroll';
-  }
-
-  // Walks up from the event target so nested scrollers keep their behavior.
-  // <body> is included because pages that pin the root height make it the
-  // scroll container.
-  function hasScrollableAncestor(target, horizontal) {
-    let node = target;
-    while (node && node !== document.documentElement) {
-      if (canScroll(node, horizontal)) return true;
-      node = node.parentElement;
-    }
-    return false;
-  }
-
-  function rootCanScroll(horizontal) {
-    const scroller = document.scrollingElement || document.documentElement;
-    if (!scroller) return false;
-    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
-    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
-                      : scroller.scrollHeight > window.innerHeight + 1;
-  }
-
-  window.addEventListener('keydown', function(event) {
-    if (!SCROLL_KEYS.has(event.key)) return;
-    if (event.defaultPrevented) return;
-    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
-    // reserved for shortcuts, so none of them are scroll intent.
-    if (event.altKey || event.metaKey || event.ctrlKey) return;
-
-    const target = event.target;
-    if (isTextEntryTarget(target)) return;
-
-    // Anything that can still absorb the scroll gets to keep it.
-    const horizontal = HORIZONTAL_KEYS.has(event.key);
-    if (rootCanScroll(horizontal)) return;
-    if (hasScrollableAncestor(target, horizontal)) return;
-
-    event.preventDefault();
-  }, {capture: true, passive: false});
-})();</script><script data-bard-client-injected="true">(function() {
-  // Ensure this script is executed only once
-  if (window.firebaseAuthBridgeScriptLoaded) {
-    return;
-  }
-  window.firebaseAuthBridgeScriptLoaded = true;
-
-  let nextTokenPromiseId = 0;
-
-  // Stores { resolve, reject } for ongoing token requests
-  const pendingTokenPromises = {};
-
-  // Listen for messages from the Host Application
-  window.addEventListener('message', function(event) {
-
-    const messageData = event.data;
-
-  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
-      const { success, token, error, promiseId } = messageData ?? {};
-      if (pendingTokenPromises[promiseId]) {
-        if (success) {
-          pendingTokenPromises[promiseId].resolve(token);
-        } else {
-          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
-        }
-        delete pendingTokenPromises[promiseId];
-      }
-    }
-  });
-
-  // Expose a function for the Generated App to request a new Firebase token
-  window.requestNewFirebaseToken = function() {
-    const currentPromiseId = nextTokenPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingTokenPromises[currentPromiseId] = { resolve, reject };
-    });
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({
-        type: 'REQUEST_NEW_FIREBASE_TOKEN',
-        promiseId: currentPromiseId
-      }, '*');
-    } else {
-      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
-      delete pendingTokenPromises[currentPromiseId];
-    }
-    return promise;
-  };
-})();</script><script data-bard-client-injected="true">
-let realOriginalGetUserMedia = null;
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-}
-
-(function() {
-  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
-    try {
-      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
-        get: function() {
-          return undefined; // Or throw an error
-        },
-        configurable: false
-      });
-    } catch (error) {
-      console.error("Error defining prototype getter:", error);
-    }
-  }
-})();
-
-(function() {
-  const pendingMediaResolvers = {};
-  let nextMediaPromiseId = 0;
-
-  function requestMediaPermissions(constraints) {
-    const mediaPromiseId = nextMediaPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingMediaResolvers[mediaPromiseId] = (granted) => {
-        delete pendingMediaResolvers[mediaPromiseId];
-        resolve(granted);
-      };
-    });
-
-    window.parent.postMessage({
-      type: 'requestMediaPermission',
-      constraints: constraints,
-      promiseId: mediaPromiseId,
-    }, '*');
-
-    return promise;
-  }
-
-  let originalGetUserMedia = realOriginalGetUserMedia;
-
-  function interceptGetUserMedia() {
-    if (navigator.mediaDevices) {
-      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
-        value: function(constraints) {
-          return requestMediaPermissions(constraints).then((granted) => {
-            if (granted) {
-              if (originalGetUserMedia) {
-                return originalGetUserMedia(constraints);
-              } else {
-                throw new Error("Original getUserMedia not available.");
-              }
-            } else {
-              throw new DOMException('Permission denied', 'NotAllowedError');
-            }
-          });
-        },
-        writable: false,
-        configurable: false
-      });
-    }
-  }
-
-  interceptGetUserMedia();
-
-  const observer = new MutationObserver(function(mutationsList, observer) {
-    for (const mutation of mutationsList) {
-      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'childList' && mutation.addedNodes) {
-        mutation.addedNodes.forEach(node => {
-          if (node === navigator.mediaDevices) {
-            interceptGetUserMedia();
-          }
-        });
-      }
-    }
-  });
-
-  function interceptSpeechRecognition() {
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      return;
-    }
-
-    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    const SpeechRecognitionWrapper = function(...args) {
-      const recognizer = new OriginalSpeechRecognition(...args);
-      const originalStart = recognizer.start.bind(recognizer);
-
-      recognizer.start = function() {
-        requestMediaPermissions({ audio: true }).then(granted => {
-          if (granted) {
-            originalStart();
-          } else {
-            const errorEvent = new SpeechRecognitionErrorEvent('error');
-            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
-            recognizer.dispatchEvent(errorEvent);
-          }
-        });
-      };
-
-      return recognizer;
-    };
-
-    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
-    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
-
-    if (window.SpeechRecognition) {
-      window.SpeechRecognition = SpeechRecognitionWrapper;
-    }
-    if (window.webkitSpeechRecognition) {
-      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
-    }
-  }
-
-  interceptSpeechRecognition();
-
-  window.addEventListener('message', function(event) {
-    if (event.data) {
-      if (event.data.type === 'resolveMediaPermission') {
-        const { promiseId, granted } = event.data;
-        if (pendingMediaResolvers[promiseId]) {
-          pendingMediaResolvers[promiseId](granted);
-        }
-      }
-    }
-  });
-
-})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
-function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
-
- Copyright The Closure Library Authors.
- SPDX-License-Identifier: Apache-2.0
-*/
-function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
-let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
-null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
-c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
-"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
-Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
-(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
-url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
-</script><script data-bard-client-injected="true">((function(modelInformation) {
-  const originalFetch = window.fetch;
-  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
-  let googleLlmBaseApiUrls = [
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
-  ];
-  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-    );
-  });
-  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-
-  const pendingFetchResolvers = {};
-  let nextPromiseId = 0;
-
-  function handleStringInput(input, optionsArgument) {
-    const actualUrl = input;
-    const fetchCallArgs = [actualUrl, optionsArgument];
-    const effectiveOptions = optionsArgument || {};
-    const bodyForApiKeyCheck = effectiveOptions.body;
-    const bodyForPostMessage = effectiveOptions.body;
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  function handleRequestInput(input, optionsArgument) {
-    const actualUrl = input.url;
-    const fetchCallArgs = [input, optionsArgument];
-    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (optionsArgument) {
-      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
-      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
-      if ('body' in optionsArgument) {
-        bodyForApiKeyCheck = optionsArgument.body;
-        bodyForPostMessage = optionsArgument.body;
-      } else {
-        bodyForApiKeyCheck = undefined;
-        bodyForPostMessage = input.body;
-      }
-    } else {
-      bodyForApiKeyCheck = undefined;
-      bodyForPostMessage = input.body;
-    }
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  window.fetch = function(input, optionsArgument) {
-    let actualUrl;
-    let fetchCallArgs;
-    let effectiveOptions = {};
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (typeof input === 'string') {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
-    } else if (input instanceof Request) {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
-    } else {
-      return originalFetch.apply(window, [input, optionsArgument]);
-    }
-
-    effectiveOptions.method = effectiveOptions.method || 'GET';
-    if (!effectiveOptions.headers) {
-      effectiveOptions.headers = new Headers();
-    }
-
-
-    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
-      let apiKeyIsNull = true;
-
-      const regex = new RegExp("models/([^:]+)");
-      const modelNameMatch = actualUrl.match(regex);
-      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
-
-
-      try {
-        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
-        const apiKeyParam = urlObject.searchParams.get('key');
-        if (apiKeyParam) {
-          apiKeyIsNull = false;
-        }
-      } catch (e) {
-        // Continue checks even if URL parsing fails
-      }
-
-      if (apiKeyIsNull && effectiveOptions.headers) {
-        const h = new Headers(effectiveOptions.headers);
-        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
-        if (apiKeyHeaderValue) {
-          apiKeyIsNull = false;
-          return originalFetch.apply(window, fetchCallArgs);
-        }
-      }
-
-      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
-        try {
-          const bodyData = JSON.parse(bodyForApiKeyCheck);
-          if (bodyData && bodyData.apiKey) {
-            apiKeyIsNull = false;
-            return originalFetch.apply(window, fetchCallArgs);
-          }
-        } catch (e) {
-          // Ignore JSON parsing errors
-        }
-      }
-
-      if(apiKeyIsNull) {
-        const promiseId = nextPromiseId++;
-        const promise = new Promise((resolve) => {
-          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
-            delete pendingFetchResolvers[promiseId];
-            resolve(resolvedResponse);
-          };
-        });
-
-        let serializedBodyForPostMessage;
-        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
-            serializedBodyForPostMessage = bodyForPostMessage;
-        } else if (bodyForPostMessage instanceof ReadableStream) {
-            serializedBodyForPostMessage = null;
-        } else {
-            try {
-                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
-            } catch (e) {
-                serializedBodyForPostMessage = null;
-            }
-        }
-
-        const messageOptions = {
-            method: effectiveOptions.method,
-            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
-            body: serializedBodyForPostMessage
-        };
-
-        window.parent.postMessage({
-          type: 'requestFetch',
-          url: actualUrl,
-          modelName: modelName,
-          options: messageOptions,
-          promiseId: promiseId,
-        }, '*');
-
-        return promise;
-      }
-      return originalFetch.apply(window, fetchCallArgs);
-    }
-    return originalFetch.apply(window, fetchCallArgs);
-  };
-
-  window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'resolveFetch') {
-      const { promiseId, response } = event.data;
-      if (pendingFetchResolvers[promiseId]) {
-        try {
-          const reconstructedResponse = new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: new Headers(response.headers),
-          });
-          pendingFetchResolvers[promiseId](reconstructedResponse);
-        } catch (error) {
-          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
-        }
-      }
-    }
-  });
-
-}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
-</script><script data-bard-client-injected="true">(function() {
-  const originalConsoleLog = console.log;
-  const originalConsoleError = console.error;
-
-    /**
-   * Normalizes an error event or a promise rejection reason into a structured error object.
-   * @param {*} errorEventOrReason The error object or reason.
-   * @return {object} Structured error data { message, name, stack }.
-   */
-  function getErrorObject(errorEventOrReason) {
-    if (errorEventOrReason instanceof Error) {
-      return {
-        message: errorEventOrReason.message,
-        name: errorEventOrReason.name,
-        stack: errorEventOrReason.stack,
-      };
-    }
-    // Fallback for non-Error objects.
-    try {
-      return {
-        message: JSON.stringify(errorEventOrReason),
-        name: 'UnknownErrorType',
-        stack: null,
-      };
-    } catch (e) {
-      return {
-        message: String(errorEventOrReason),
-        name: 'UnknownErrorTypeNonStringifiable',
-        stack: null,
-      };
-    }
-  }
-
-  /**
-   * Converts an array of arguments (from log/error) into a single string.
-   * Handles Error objects specially to include their message and stack.
-   * @param {Array<*>} args - Arguments passed to console methods.
-   * @return {string} A string representation of the arguments.
-   */
-  function stringifyArgs(args) {
-    return args
-      .map((arg) => {
-        if (arg instanceof Error) {
-          const {message, stack} = arg;
-          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
-        }
-        if (typeof arg === 'object' && arg !== null) {
-          try {
-            return JSON.stringify(arg);
-          } catch (error) {
-            return '[Circular Object]';
-          }
-        } else {
-          return String(arg);
-        }
-      })
-      .join(' ');
-  }
-
-  console.log = function(...args) {
-    const logString = stringifyArgs(args);
-    window.parent.postMessage({ type: 'log', message: logString }, '*');
-    originalConsoleLog.apply(console, args);
-  };
-
-  console.error = function(...args) {
-    let errorData;
-    if (args.length > 0 && args[0] instanceof Error) {
-      const err = args[0];
-      // If the first arg is an Error, capture its details.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        ...getErrorObject(err),
-        rawArgsString: stringifyArgs(args.slice(1)),
-        timestamp: new Date().toISOString(),
-      };
-    } else {
-      // If not an Error object, treat all args as a general error message.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        message: stringifyArgs(args),
-        name: 'ConsoleLoggedError',
-        stack: null,
-        timestamp: new Date().toISOString(),
-      };
-    }
-    window.parent.postMessage(errorData, '*');
-    originalConsoleError.apply(console, args);
-  };
-
-  // Listen for global unhandled synchronous errors.
-  window.addEventListener('error', function(event) {
-    const errorDetails = event.error ? getErrorObject(event.error) : {
-      message: event.message,
-      name: 'GlobalError',
-      stack: null,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-    };
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'global',
-      ...errorDetails,
-      message: errorDetails.message || event.message,
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-  // Listen for unhandled promise rejections (asynchronous errors).
-  window.addEventListener('unhandledrejection', function(event) {
-    const errorDetails = getErrorObject(event.reason);
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'unhandledrejection',
-      ...errorDetails,
-      message: errorDetails.message || 'Unhandled Promise Rejection',
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-})();</script>
+<html lang="no">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Café Panique ! – Franskspill for 9. trinn</title>
+<title>Café Panique ! · Fransk kaféspill for skolen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bistro-red: #9e1b1b;
-    --bistro-red-dark: #6e1010;
-    --bistro-cream: #fdf8ee;
-    --bistro-paper: #fffdf7;
-    --bistro-wood: #4a2c18;
-    --bistro-wood-light: #6b4226;
-    --bistro-gold: #d4af37;
-    --bistro-gold-light: #f5e19c;
-    --bistro-green: #1f7a4c;
-    --bistro-blue: #1d4ed8;
-    --text-dark: #261810;
+    --bistro-bg: #f8f6f0;
+    --bistro-card: #ffffff;
+    --bistro-navy: #0f172a;
+    --bistro-navy-light: #1e293b;
+    --bistro-wood: #2c1810;
+    --bistro-wine: #991b1b;
+    --bistro-wine-hover: #7f1d1d;
+    --bistro-gold: #d97706;
+    --bistro-gold-light: #fef3c7;
+    --bistro-green: #15803d;
+    --bistro-green-light: #dcfce7;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-card: rgba(15, 23, 42, 0.08);
+    --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+    --shadow-lg: 0 20px 35px -5px rgba(15, 23, 42, 0.12);
   }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--bistro-cream);
-    background-image: radial-gradient(#e6dcc8 1px, transparent 1px);
-    background-size: 20px 20px;
-    color: var(--text-dark);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bistro-bg);
+    background-image: 
+      radial-gradient(circle at 100% 0%, rgba(217, 119, 6, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(153, 27, 27, 0.04) 0%, transparent 40%);
+    color: var(--text-main);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
   }
 
-  /* Awning Header */
+  /* --- CHIC PARISIAN AWNING STRIPE --- */
   .awning {
-    height: 26px;
+    height: 14px;
+    width: 100%;
     background: repeating-linear-gradient(
-      90deg,
-      var(--bistro-red) 0px,
-      var(--bistro-red) 40px,
-      #ffffff 40px,
-      #ffffff 80px
+      -45deg,
+      #991b1b,
+      #991b1b 16px,
+      #fdfbf7 16px,
+      #fdfbf7 32px
     );
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    border-bottom: 4px solid var(--bistro-gold);
+    box-shadow: 0 2px 8px rgba(153, 27, 27, 0.2);
+    position: relative;
+    z-index: 20;
   }
 
-  /* Top Navigation Bar */
+  /* --- MODERN UNIFIED TOPBAR --- */
   .topbar {
-    background: var(--bistro-wood);
-    color: #fff;
-    padding: 10px 18px;
+    background: var(--bistro-navy);
+    border-bottom: 2px solid rgba(217, 119, 6, 0.3);
+    padding: 10px 22px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   }
 
   .brand {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: Georgia, serif;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+  }
+  .brand:hover { transform: scale(1.02); }
+  .brand-logo {
+    font-size: 1.6rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+  .brand-title {
+    font-family: 'Cinzel', Georgia, serif;
     font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--bistro-gold-light);
-    cursor: pointer;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #ffffff;
   }
-
-  .top-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    align-items: center;
-  }
-
-  .btn-top {
-    background: rgba(255,255,255,0.12);
+  .brand-badge {
+    background: linear-gradient(135deg, #d97706, #b45309);
     color: #fff;
-    border: 1px solid rgba(255,255,255,0.28);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.83rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
 
-  .btn-top:hover {
-    background: rgba(255,255,255,0.24);
+  .topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #e2e8f0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .pill-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #ffffff;
     transform: translateY(-1px);
   }
-
-  .btn-top.active {
-    background: var(--bistro-gold);
-    color: var(--text-dark);
-    border-color: #fff;
+  .pill-btn.active {
+    background: #d97706;
+    border-color: #f59e0b;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(217, 119, 6, 0.4);
+  }
+  .pill-btn.teacher-active {
+    background: #2563eb;
+    border-color: #60a5fa;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(37, 99, 235, 0.45);
   }
 
-  .btn-top.teacher-active {
-    background: #38bdf8;
-    color: #0f172a;
-    border-color: #bae6fd;
-  }
-
-  .btn-top.download-btn {
-    background: #10b981;
-    color: #064e3b;
-    border-color: #a7f3d0;
-    font-weight: 700;
-  }
-
-  .btn-top.download-btn:hover {
-    background: #34d399;
-  }
-
-  /* Main Container */
-  .container {
-    max-width: 1120px;
-    width: 100%;
+  /* --- APP CONTAINER --- */
+  .main-wrap {
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 18px;
+    padding: 24px 20px 48px;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    width: 100%;
   }
 
-  /* Screens */
-  .screen {
-    display: none;
-    animation: fadeIn 0.25s ease;
-  }
-  .screen.active {
-    display: block;
-  }
-
+  /* Screen visibility */
+  .screen { display: none; animation: fadeIn 0.25s ease-out; }
+  .screen.active { display: block; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Start Menu Screen */
-  .hero-card {
-    background: var(--bistro-paper);
-    border: 3px solid var(--bistro-wood);
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  /* --- HERO HEADER --- */
+  .hero-box {
     text-align: center;
-    margin-bottom: 20px;
+    padding: 28px 20px 24px;
+    background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+    border: 1px solid var(--border-card);
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
   }
-
+  .hero-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #991b1b, #d97706, #15803d);
+  }
   .hero-title {
-    font-family: Georgia, serif;
-    font-size: 2.3rem;
-    color: var(--bistro-red);
-    margin-bottom: 6px;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--bistro-wood);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.5;
   }
 
-  .hero-sub {
-    font-size: 1.02rem;
-    color: #5c4636;
-    margin-bottom: 18px;
-    max-width: 760px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Prominent Whiteboard / Teacher Banner on Main Menu */
-  .whiteboard-hero-banner {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-    color: #fff;
-    border: 3px solid #38bdf8;
+  /* --- TEACHER SHOWCASE CARD --- */
+  .teacher-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     border-radius: 16px;
-    padding: 18px 22px;
-    margin-bottom: 22px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    text-align: left;
-    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.22);
+    padding: 22px 26px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .teacher-card::after {
+    content: '👨‍🏫';
+    position: absolute;
+    right: 20px;
+    bottom: -15px;
+    font-size: 6rem;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  .teacher-card-badge {
+    display: inline-block;
+    background: rgba(217, 119, 6, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .teacher-card h3 {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.35rem;
+    margin-bottom: 8px;
+    color: #fef3c7;
+  }
+  .teacher-card p {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    line-height: 1.55;
+    margin-bottom: 16px;
+    max-width: 820px;
   }
 
-  .whiteboard-hero-text h3 {
-    font-family: Georgia, serif;
-    font-size: 1.35rem;
-    color: #7dd3fc;
-    margin-bottom: 4px;
+  /* --- SECTION TITLE --- */
+  .section-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bistro-navy);
+    margin: 28px 0 14px;
     display: flex;
     align-items: center;
     gap: 8px;
+    letter-spacing: 0.5px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(15, 23, 42, 0.12);
   }
 
-  .whiteboard-hero-text p {
-    font-size: 0.92rem;
-    color: #e0f2fe;
-    line-height: 1.45;
-    max-width: 650px;
-  }
-
-  .btn-start-whiteboard {
-    background: #38bdf8;
-    color: #0f172a;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
-  }
-
-  .btn-start-whiteboard:hover {
-    background: #7dd3fc;
-    transform: translateY(-2px);
-  }
-
-  .mode-section-title {
-    font-family: Georgia, serif;
-    font-size: 1.22rem;
-    color: var(--bistro-wood);
-    margin: 16px 0 10px;
-    text-align: left;
-    border-bottom: 2px solid #e6dcc8;
-    padding-bottom: 6px;
-  }
-
+  /* --- MODE GRID --- */
   .mode-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 14px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
   }
 
   .mode-card {
-    background: #fff;
-    border: 2px solid #dfd3be;
-    border-radius: 14px;
-    padding: 16px;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
+    background: var(--bistro-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.22s ease;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
     overflow: hidden;
   }
-
   .mode-card:hover {
-    border-color: var(--bistro-red);
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(158, 27, 27, 0.14);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(153, 27, 27, 0.25);
   }
-
-  .mode-card.comp {
-    background: linear-gradient(135deg, #fffdf9 0%, #fff4dc 100%);
-    border-color: var(--bistro-gold);
+  .mode-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
   }
-
-  .mode-card.comp:hover {
-    border-color: var(--bistro-red);
-  }
-
   .mode-badge {
-    display: inline-block;
     font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
-    padding: 3px 9px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
   }
-
-  .badge-comp { background: var(--bistro-red); color: #fff; }
-  .badge-lvl1 { background: #dcfce7; color: #166534; }
-  .badge-lvl2 { background: #dbeafe; color: #1e40af; }
-  .badge-lvl3 { background: #fef3c7; color: #92400e; }
+  .badge-hot { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-amber { background: #fef3c7; color: #b45309; }
 
   .mode-card h3 {
-    font-size: 1.18rem;
-    margin-bottom: 6px;
-    color: var(--text-dark);
-  }
-
-  .mode-card p {
-    font-size: 0.9rem;
-    color: #555;
-    line-height: 1.4;
-    margin-bottom: 12px;
-  }
-
-  .mode-start-btn {
-    background: var(--bistro-red);
-    color: #fff;
-    border: none;
-    padding: 9px 14px;
-    border-radius: 8px;
+    font-size: 1.2rem;
     font-weight: 700;
-    cursor: pointer;
-    width: 100%;
+    color: var(--bistro-navy);
+    margin-bottom: 6px;
+  }
+  .mode-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 18px;
+    flex: 1;
+  }
+
+  .btn-start {
+    background: var(--bistro-navy);
+    color: #ffffff;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: 700;
     font-size: 0.95rem;
-    transition: background 0.15s;
-  }
-
-  .mode-start-btn:hover {
-    background: var(--bistro-red-dark);
-  }
-
-  /* Highscore Board on Menu */
-  .leaderboard-box {
-    background: #fff;
-    border: 2px solid #dfd3be;
-    border-radius: 14px;
-    padding: 18px;
-    margin-top: 12px;
-    text-align: left;
-  }
-
-  .leaderboard-header {
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-start:hover {
+    background: #1e293b;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    transform: translateY(-1px);
+  }
+  .btn-start.wine {
+    background: var(--bistro-wine);
+  }
+  .btn-start.wine:hover {
+    background: var(--bistro-wine-hover);
+    box-shadow: 0 4px 12px rgba(153, 27, 27, 0.35);
+  }
+  .btn-start.amber {
+    background: #d97706;
+  }
+  .btn-start.amber:hover {
+    background: #b45309;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
   }
 
+  /* --- LEADERBOARD CARD --- */
+  .leaderboard-card {
+    background: var(--bistro-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    margin-top: 10px;
+  }
   .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.92rem;
   }
-
-  .leaderboard-table th, .leaderboard-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-  }
-
   .leaderboard-table th {
-    color: #666;
-    font-size: 0.8rem;
+    text-align: left;
+    padding: 10px 12px;
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.75rem;
     text-transform: uppercase;
+    font-weight: 800;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .leaderboard-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .leaderboard-table tr:hover td {
+    background: #fafaf9;
   }
 
-  /* Game HUD */
-  .hud {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-    gap: 10px;
-    background: #fff;
-    border: 2px solid var(--bistro-wood);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-bottom: 14px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+  /* --- GAME HUD --- */
+  .hud-bar {
+    background: var(--bistro-navy);
+    border-radius: 14px;
+    padding: 12px 20px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-md);
   }
-
   .hud-item {
     display: flex;
     flex-direction: column;
+    gap: 2px;
   }
-
   .hud-label {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    color: #777;
-    font-weight: 700;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
   }
-
   .hud-val {
-    font-size: 1.18rem;
+    font-size: 1.25rem;
     font-weight: 800;
-    color: var(--text-dark);
+    color: #ffffff;
   }
+  .hud-val.gold { color: #f59e0b; }
+  .hud-val.green { color: #4ade80; }
 
-  .streak-pill {
-    display: inline-block;
-    background: #ffedd5;
-    color: #c2410c;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 800;
-  }
-
-  /* Customer Area */
-  .customer-stage {
-    background: linear-gradient(180deg, #fffdf8 0%, #f7efe0 100%);
-    border: 3px solid var(--bistro-wood);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 14px;
-    display: grid;
-    grid-template-columns: 125px 1fr;
-    gap: 16px;
-    align-items: center;
+  /* --- CUSTOMER CARD --- */
+  .customer-card {
+    background: var(--bistro-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
   }
-
-  @media (max-width: 640px) {
-    .customer-stage {
-      grid-template-columns: 1fr;
-      text-align: center;
-    }
-  }
-
-  .customer-avatar-box {
+  .customer-top {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: #fff;
-    border: 2px solid #e2d5be;
-    border-radius: 14px;
-    padding: 10px;
+    gap: 16px;
+    margin-bottom: 14px;
   }
-
-  .customer-emoji {
-    font-size: 3.4rem;
-    line-height: 1.1;
+  .cust-avatar {
+    font-size: 2.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
   }
-
-  .customer-name {
-    font-weight: 700;
-    font-size: 0.88rem;
-    margin-top: 4px;
+  .cust-info { flex: 1; }
+  .cust-name {
+    font-weight: 800;
+    font-size: 1.15rem;
     color: var(--bistro-wood);
   }
+  .cust-tag {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
 
-  .speech-bubble {
-    background: #fff;
-    border: 2px solid var(--bistro-wood);
+  .order-bubble {
+    background: #fffbeb;
+    border: 2px solid #fde68a;
     border-radius: 14px;
     padding: 16px 20px;
     position: relative;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    margin-bottom: 14px;
   }
-
-  .order-french {
-    font-family: Georgia, serif;
-    font-size: 1.38rem;
+  .order-quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    color: #78350f;
     line-height: 1.45;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-    transition: font-size 0.2s ease;
   }
 
-  /* Enlarged font when Tavlemodus is active so students at the back can read easily */
-  body.whiteboard-active .order-french {
-    font-size: 1.85rem;
-    line-height: 1.4;
-    font-weight: 600;
-  }
-
-  .order-controls {
+  .audio-controls {
     display: flex;
-    flex-wrap: wrap;
     gap: 8px;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .audio-btn-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .btn-audio {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-    padding: 7px 13px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.88rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: background 0.15s;
-  }
-
-  .btn-audio:hover {
-    background: #dbeafe;
-  }
-
-  .calm-status-badge {
-    display: none;
-    background: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 700;
-  }
-
-  /* Patience Timer Bar */
-  .timer-wrap {
     margin-top: 10px;
-    background: #e5e7eb;
-    height: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-audio {
+    background: #ffffff;
+    border: 1px solid #f59e0b;
+    color: #b45309;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-audio:hover {
+    background: #fef3c7;
+    transform: translateY(-1px);
+  }
+
+  /* Timer bar */
+  .timer-wrap {
+    height: 8px;
+    background: #e2e8f0;
     border-radius: 999px;
     overflow: hidden;
-    border: 1px solid #cbd5e1;
+    margin-top: 12px;
   }
-
   .timer-bar {
     height: 100%;
     width: 100%;
-    background: var(--bistro-green);
-    transition: width 0.25s linear, background-color 0.25s ease;
+    background: #15803d;
+    transition: width 0.25s linear, background-color 0.3s;
+  }
+  .calm-badge {
+    display: none;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-top: 10px;
   }
 
-  /* Teacher Whiteboard Toolbar ("Lærerpanel for tavle") */
+  /* Teacher Toolbar */
   .teacher-toolbar {
     display: none;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 2px dashed #cbd5e1;
-    flex-wrap: wrap;
-    gap: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
     align-items: center;
     justify-content: space-between;
-  }
-
-  body.whiteboard-active .teacher-toolbar {
-    display: flex;
-  }
-
-  .teacher-toolbar-left, .teacher-toolbar-right {
-    display: flex;
     flex-wrap: wrap;
+    gap: 10px;
+  }
+  body.whiteboard-active .teacher-toolbar { display: flex; }
+
+  .teacher-btn-group {
+    display: flex;
     gap: 6px;
-    align-items: center;
   }
-
-  .teacher-label {
-    font-size: 0.78rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: #0369a1;
-    background: #e0f2fe;
-    padding: 4px 9px;
-    border-radius: 6px;
-    margin-right: 4px;
-  }
-
-  .btn-teacher-tool {
-    background: #f8fafc;
-    color: #1e293b;
-    border: 1px solid #94a3b8;
-    padding: 6px 11px;
+  .btn-teach-pill {
+    background: #ffffff;
+    border: 1px solid #93c5fd;
+    color: #1e40af;
+    padding: 5px 12px;
     border-radius: 8px;
-    font-size: 0.83rem;
+    font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s;
   }
-
-  .btn-teacher-tool:hover {
-    background: #e2e8f0;
+  .btn-teach-pill.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #1d4ed8;
   }
 
-  .btn-teacher-tool.active {
-    background: #0284c7;
-    color: #fff;
-    border-color: #0369a1;
-  }
-
-  /* Pedagogical Grammar & Structure Breakdown Box */
-  .grammar-breakdown {
+  /* Grammar breakdown */
+  .grammar-box {
     display: none;
-    margin-top: 12px;
     background: #f8fafc;
-    border: 2px solid #93c5fd;
+    border: 1px solid #cbd5e1;
     border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 0.95rem;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    animation: fadeIn 0.2s;
   }
-
-  .grammar-breakdown.show {
-    display: block;
-    animation: fadeIn 0.2s ease;
-  }
-
+  .grammar-box.show { display: block; }
   .grammar-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 8px;
   }
-
   .g-chip {
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.88rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
+  .g-chip.masc { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+  .g-chip.fem { background: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+  .g-chip.plural { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+  .g-chip.neg { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
-  .g-chip.masc {
-    background: #dbeafe;
-    color: #1e3a8a;
-    border: 1px solid #93c5fd;
-  }
-
-  .g-chip.fem {
-    background: #fce7f3;
-    color: #831843;
-    border: 1px solid #f9a8d4;
-  }
-
-  .g-chip.plural {
-    background: #fef3c7;
-    color: #78350f;
-    border: 1px solid #fde68a;
-  }
-
-  .g-chip.neg {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-  }
-
-  /* Feedback Alert Banner */
-  .feedback-banner {
-    display: none;
-    padding: 12px 16px;
-    border-radius: 12px;
-    margin-bottom: 14px;
-    font-weight: 700;
-    font-size: 0.98rem;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .feedback-banner.show {
-    display: flex;
-  }
-
-  .feedback-banner.error {
-    background: #fef2f2;
-    border: 2px solid #ef4444;
-    color: #991b1b;
-  }
-
-  .feedback-banner.success {
-    background: #f0fdf4;
-    border: 2px solid #22c55e;
-    color: #166534;
-  }
-
-  .btn-next-customer {
-    background: #15803d;
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 800;
-    font-size: 0.92rem;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(21, 128, 61, 0.3);
-    transition: transform 0.15s, background 0.15s;
-  }
-
-  .btn-next-customer:hover {
-    background: #166534;
-    transform: scale(1.03);
-  }
-
-  /* Workspace: Menu Shelf & Tray */
+  /* --- COUNTER & TRAY WORKSPACE --- */
   .workspace {
     display: grid;
-    grid-template-columns: 1.55fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 860px) {
+    .workspace { grid-template-columns: 1fr; }
   }
 
-  @media (max-width: 820px) {
-    .workspace {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .counter-box, .tray-box {
-    background: var(--bistro-paper);
-    border: 3px solid var(--bistro-wood);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  }
-
-  .box-title {
-    font-family: Georgia, serif;
-    font-size: 1.15rem;
-    color: var(--bistro-wood);
-    margin-bottom: 12px;
+  .counter-col, .tray-col {
+    background: var(--bistro-card);
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #ece2d0;
-    padding-bottom: 6px;
+    flex-direction: column;
   }
 
+  .col-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--bistro-wood);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Items Grid */
   .items-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
+  }
+  .items-grid.hide-labels .food-name,
+  .items-grid.hide-labels .food-price {
+    display: none;
+  }
+  .items-grid.hide-labels {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   }
 
   .food-btn {
-    background: #fff;
-    border: 2px solid #ded2bd;
+    background: #fdfbf7;
+    border: 1.5px solid #e7e2d7;
     border-radius: 12px;
-    padding: 10px 6px;
-    cursor: pointer;
+    padding: 10px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-    transition: all 0.14s;
-    position: relative;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    user-select: none;
   }
-
   .food-btn:hover {
-    border-color: var(--bistro-red);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-color: #d97706;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.15);
   }
-
   .food-btn:active {
-    transform: scale(0.96);
+    transform: translateY(0);
   }
-
-  .food-emoji {
-    font-size: 2.3rem;
-    margin-bottom: 4px;
-  }
-
+  .food-emoji { font-size: 2.1rem; line-height: 1.1; }
   .food-name {
+    font-size: 0.82rem;
     font-weight: 700;
-    font-size: 0.84rem;
-    color: var(--text-dark);
+    color: var(--bistro-navy);
+    text-align: center;
     line-height: 1.2;
-    margin-bottom: 4px;
   }
-
-  .hide-labels .food-name {
-    display: none;
-  }
-
   .food-price {
-    background: var(--bistro-gold-light);
-    color: var(--bistro-wood);
+    font-size: 0.75rem;
     font-weight: 800;
-    font-size: 0.78rem;
-    padding: 2px 8px;
-    border-radius: 10px;
+    color: #d97706;
+    background: #fef3c7;
+    padding: 2px 7px;
+    border-radius: 999px;
   }
 
-  /* Tray Section */
+  /* Tray Surface */
   .tray-surface {
-    min-height: 175px;
-    background: #f4ead5;
-    border: 3px dashed #bda782;
-    border-radius: 12px;
-    padding: 12px;
+    background: repeating-linear-gradient(
+      0deg,
+      #f8fafc,
+      #f8fafc 24px,
+      #f1f5f9 24px,
+      #f1f5f9 48px
+    );
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 180px;
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
     align-content: flex-start;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 14px;
   }
-
   .tray-empty {
     width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    color: #8c7658;
+    color: #94a3b8;
     font-size: 0.9rem;
-    margin: auto 0;
-    padding: 20px 0;
+    font-style: italic;
+    padding: 30px 10px;
   }
 
   .tray-pill {
-    background: #fff;
-    border: 2px solid var(--bistro-wood);
-    border-radius: 10px;
-    padding: 6px 10px;
-    display: flex;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    border-radius: 999px;
+    padding: 6px 12px;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    font-size: 0.85rem;
     font-weight: 700;
-    font-size: 0.9rem;
     cursor: pointer;
-    animation: popIn 0.15s ease;
+    transition: all 0.15s;
+    user-select: none;
+    animation: popIn 0.15s ease-out;
   }
-
   .tray-pill:hover {
     background: #fee2e2;
-    border-color: #ef4444;
+    border-color: #fca5a5;
+    transform: translateY(-1px);
   }
-
   @keyframes popIn {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -1435,330 +737,394 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
 
   .tray-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
-
-  .btn-clear {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
   .btn-serve {
-    flex: 1;
-    background: var(--bistro-green);
-    color: #fff;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    color: #ffffff;
     border: none;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-radius: 10px;
     font-weight: 800;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.15s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+    transition: all 0.2s;
+  }
+  .btn-serve:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.4);
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  }
+  .btn-clear {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-clear:hover {
+    background: #e2e8f0;
+    color: #1e293b;
   }
 
-  .btn-serve:hover {
+  /* --- FEEDBACK BANNER --- */
+  .feedback-banner {
+    display: none;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    animation: fadeIn 0.2s;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .feedback-banner.show { display: flex; }
+  .feedback-banner.success {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #14532d;
+  }
+  .feedback-banner.error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #7f1d1d;
+  }
+  .btn-next-customer {
+    background: #15803d;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.3);
+  }
+  .btn-next-customer:hover {
     background: #166534;
   }
 
-  /* Modal Backdrop */
+  /* --- MODAL WINDOWS --- */
   .modal-backdrop {
+    display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
     align-items: center;
     justify-content: center;
-    padding: 16px;
-    z-index: 100;
+    padding: 20px;
   }
-
-  .modal-backdrop.show {
-    display: flex;
-  }
-
+  .modal-backdrop.show { display: flex; }
   .modal-card {
-    background: var(--bistro-paper);
-    border: 4px solid var(--bistro-wood);
-    border-radius: 18px;
-    max-width: 600px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
     width: 100%;
+    max-width: 520px;
+    padding: 26px;
+    position: relative;
     max-height: 90vh;
     overflow-y: auto;
-    padding: 22px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
-    animation: popIn 0.2s ease;
+    animation: modalPop 0.2s ease-out;
+  }
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
   }
 
+  /* Receipt box (La Caisse) */
   .receipt-box {
-    background: #fff;
-    border: 2px dashed #cbbba0;
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin: 12px 0 16px;
+    background: #fafaf9;
+    border: 1px solid #e7e5e4;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 14px 0 18px;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 0.95rem;
   }
-
   .receipt-line {
     display: flex;
     justify-content: space-between;
     padding: 4px 0;
-    border-bottom: 1px dotted #e5e7eb;
+    border-bottom: 1px dashed #e7e5e4;
   }
-
   .caisse-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 10px;
-    margin-top: 12px;
   }
-
-  @media (max-width: 480px) {
-    .caisse-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
   .caisse-btn {
-    background: #fff;
-    border: 2px solid var(--bistro-wood);
+    background: #f8fafc;
+    border: 2px solid #cbd5e1;
+    color: var(--bistro-navy);
+    padding: 14px;
     border-radius: 12px;
-    padding: 14px 12px;
-    font-family: Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.15rem;
-    font-weight: bold;
-    color: var(--text-dark);
+    font-style: italic;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: center;
+  }
+  .caisse-btn:hover {
+    background: #fef3c7;
+    border-color: #d97706;
+    color: #78350f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.15);
+  }
+
+  /* Glossary Modal */
+  .glossary-section-title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 1.05rem;
+    color: var(--bistro-wood);
+    margin: 18px 0 10px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 4px;
+  }
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .glossary-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
     transition: all 0.15s;
   }
-
-  .caisse-btn:hover {
-    background: var(--bistro-gold-light);
-    border-color: var(--bistro-red);
-    transform: translateY(-2px);
+  .glossary-item:hover {
+    background: #fef3c7;
+    border-color: #f59e0b;
   }
 
-  /* Diploma / End Screen */
+  /* --- END SCREEN DIPLOMA --- */
   .diploma-card {
-    background: linear-gradient(135deg, #fffdf9 0%, #fff6df 100%);
-    border: 6px double var(--bistro-gold);
-    outline: 3px solid var(--bistro-wood);
-    border-radius: 18px;
-    padding: 28px;
-    max-width: 650px;
-    margin: 10px auto;
-    text-align: center;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-  }
-
-  .diploma-header {
-    font-family: Georgia, serif;
-    font-size: 2rem;
-    color: var(--bistro-red);
-    margin-bottom: 4px;
-  }
-
-  .diploma-rank {
-    display: inline-block;
-    background: var(--bistro-wood);
-    color: var(--bistro-gold-light);
-    padding: 6px 18px;
+    background: #ffffff;
+    border: 3px double #d97706;
     border-radius: 20px;
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin: 10px 0 18px;
+    padding: 32px 24px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    max-width: 620px;
+    margin: 0 auto;
+    position: relative;
   }
-
+  .diploma-header {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 2rem;
+    color: var(--bistro-wood);
+    margin-bottom: 6px;
+  }
+  .diploma-rank {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #991b1b;
+    margin: 12px 0 20px;
+    padding: 8px 20px;
+    background: #fee2e2;
+    border-radius: 999px;
+    display: inline-block;
+  }
   .diploma-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
+    text-align: left;
   }
-
   .stat-tile {
-    background: #fff;
-    border: 2px solid #e6d8b8;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 12px;
+    padding: 12px 16px;
   }
-
   .stat-tile .num {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    color: var(--bistro-red);
+    color: var(--bistro-navy);
   }
 
   .save-score-bar {
     display: flex;
     gap: 8px;
-    justify-content: center;
-    margin-bottom: 16px;
+    margin: 16px 0;
   }
-
   .save-score-bar input {
-    padding: 10px 14px;
-    border: 2px solid var(--bistro-wood);
-    border-radius: 8px;
-    font-size: 1rem;
-    width: 220px;
+    flex: 1;
+    padding: 12px 16px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: inherit;
   }
-
   .verify-code {
-    font-family: monospace;
-    font-size: 0.85rem;
-    color: #6b5a45;
-    background: #f3ead8;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
+    color: #64748b;
+    background: #f1f5f9;
     padding: 6px 12px;
     border-radius: 6px;
+    font-size: 0.85rem;
     display: inline-block;
-    margin-top: 8px;
-  }
-
-  /* Glossary Grid */
-  .glossary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-    gap: 8px;
-    margin-top: 10px;
-  }
-
-  .glossary-item {
-    background: #fff;
-    border: 1px solid #dfd3be;
-    border-radius: 8px;
-    padding: 8px 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 0.88rem;
-  }
-
-  .glossary-item:hover {
-    background: #eff6ff;
-    border-color: #93c5fd;
   }
 </style>
 </head>
 <body>
 
+<!-- CHIC AWNING -->
 <div class="awning"></div>
 
+<!-- TOPBAR -->
 <header class="topbar">
   <div class="brand" onclick="showMenu()">
-    <span>🥐 Café Panique !</span>
+    <span class="brand-logo">☕</span>
+    <span class="brand-title">Café Panique !</span>
+    <span class="brand-badge">Paris 🇫🇷</span>
   </div>
-  <div class="top-controls">
-    <button class="btn-top" id="btnWhiteboard" onclick="toggleWhiteboardMode()" title="Slå på tavlemodus med ekstra stor skrift, språkhjelp og ingen tidsfrist">👨‍🏫 Tavlemodus: AV</button>
-    <button class="btn-top" id="btnCalm" onclick="toggleCalmMode()" title="Slå av/på tidsfrist i alle moduser">🧘 Rolig modus: AV</button>
-    <button class="btn-top active" id="btnLabels" onclick="toggleLabels()" title="Vis/skjul franske varenavn under bildene">
-      🏷️ Merkelapper: PÅ
-    </button>
-    <button class="btn-top" onclick="openGlossary()">
-      📖 Glosebok
-    </button>
-    <button class="btn-top active" id="btnSound" onclick="toggleSound()">
-      🔊 Lyd: PÅ
-    </button>
-    <button class="btn-top download-btn" onclick="downloadHtmlFile()" title="Last ned hele spillet som én ferdig HTML-fil">
-      💾 Last ned .html
-    </button>
-    <button class="btn-top" onclick="showMenu()">
-      🏠 Meny
-    </button>
+
+  <div class="topbar-controls">
+    <button class="pill-btn" id="btnWhiteboard" onclick="toggleWhiteboardMode()">👨‍🏫 Tavlemodus: AV</button>
+    <button class="pill-btn" id="btnCalm" onclick="toggleCalmMode()">🧘 Rolig modus: AV</button>
+    <button class="pill-btn active" id="btnLabels" onclick="toggleLabels()">🏷️ Merkelapper: PÅ</button>
+    <button class="pill-btn" onclick="openGlossary()">📖 Glosebok</button>
+    <button class="pill-btn active" id="btnSound" onclick="toggleSound()">🔊 Lyd: PÅ</button>
+    <button class="pill-btn" onclick="showMenu()">🏠 Meny</button>
   </div>
 </header>
 
-<main class="container">
+<main class="main-wrap">
 
-  <!-- START MENU SCREEN -->
-  <section id="screenMenu" class="screen active">
-    <div class="hero-card">
-      <h1 class="hero-title">Bienvenue au Café Panique ! 🇫🇷</h1>
-      <p class="hero-sub">
-        Jobb bak disken på en travel fransk kafé! Les eller lytt til kundens bestilling på fransk, legg riktige varer på brettet og ta betalt i kassen.
+  <!-- ================= SCREEN 1: MENU ================= -->
+  <section class="screen active" id="screenMenu">
+    
+    <div class="hero-box">
+      <h1 class="hero-title">Bienvenue au Café Panique ! 🥐☕</h1>
+      <p class="hero-subtitle">
+        Jobb bak disken på en travel kafé i Paris! Les eller lytt til kundens bestilling på fransk,
+        legg riktige varer på brettet og ta betalt i kassen.
       </p>
+    </div>
 
-      <!-- PROMINENT WHITEBOARD / TEACHER BANNER -->
-      <div class="whiteboard-hero-banner">
-        <div class="whiteboard-hero-text">
-          <h3>👨‍🏫 Tavlemodus – Undervisning på storskjerm</h3>
-          <p>
-            Skal du gjennomgå franske bestillinger, tall eller nektelse (<em>pas de / sans</em>) felles på tavla?
-            I Tavlemodus er <strong>alt tidspress skrudd av</strong>, teksten er ekstra stor, og du får et eget <strong>lærerpanel med språkanalyse</strong> og raskt nivåbytte.
-          </p>
+    <!-- TEACHER SHOWCASE BANNER -->
+    <div class="teacher-card">
+      <span class="teacher-card-badge">Storskjerm · Undervisning i klasserommet</span>
+      <h3>👨‍🏫 Tavlemodus for felles gjennomgang</h3>
+      <p>
+        Skal du gjennomgå franske bestillinger, tall eller nektelse (<em>pas de / sans</em>) felles på tavla?
+        I Tavlemodus er <strong>alt tidspress skrudd av</strong>, teksten er ekstra stor, og du får et eget 
+        <strong>lærerpanel med språkanalyse</strong> og raskt nivåbytte.
+      </p>
+      <button class="btn-start amber" style="max-width: 320px;" onclick="startWhiteboardSession()">
+        Start Tavlemodus på storskjerm ➔
+      </button>
+    </div>
+
+    <!-- COMPETITION MODES -->
+    <h2 class="section-title">🏆 Konkurransemoduser (med poengbevis & toppliste)</h2>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-header">
+          <span class="mode-badge badge-hot">🔥 Mest populær</span>
+          <span style="font-size: 1.4rem;">🥐</span>
         </div>
-        <button class="btn-start-whiteboard" onclick="startWhiteboardSession()">
-          👨‍🏫 Start Tavlemodus på storskjerm ➔
+        <h3>Rushtid i Paris</h3>
+        <p class="mode-desc">
+          Du har <strong>3 liv (❤️❤️❤️)</strong>. For hver kunde krymper tiden, og bestillingene blir vanskeligere.
+          (Tips: Klikk <em>🧘 Rolig modus</em> øverst hvis du vil fjerne tidspresset!)
+        </p>
+        <button class="btn-start wine" onclick="startGame('rush')">Start Rushtid ➔</button>
+      </div>
+
+      <div class="mode-card">
+        <div class="mode-header">
+          <span class="mode-badge badge-amber">⚡ Fellesstart i klassen</span>
+          <span style="font-size: 1.4rem;">⏱️</span>
+        </div>
+        <h3>2-Minutters Klasseduell</h3>
+        <p class="mode-desc">
+          Alle har nøyaktig <strong>120 sekunder</strong>! Ekspeder så mange kunder og tjen så mange poeng du klarer før klokka ringer.
+        </p>
+        <button class="btn-start" onclick="startGame('sprint')">Start 2-Min Duell ➔</button>
+      </div>
+    </div>
+
+    <!-- TRAINING LEVELS -->
+    <h2 class="section-title">📚 Trinnvis Trening & Grammatikk</h2>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mode-header">
+          <span class="mode-badge badge-blue">Trinn 1</span>
+          <span style="font-size: 1.4rem;">🥐</span>
+        </div>
+        <h3>Nivå 1: Hankjønn & Hunkjønn</h3>
+        <p class="mode-desc">
+          Lær forskjellen på <em>un</em> (hankjønn) og <em>une</em> (hunkjønn). 1–2 enkle varer per kunde.
+        </p>
+        <button class="btn-start" onclick="startGame('lvl1')">Start Nivå 1 ➔</button>
+      </div>
+
+      <div class="mode-card">
+        <div class="mode-header">
+          <span class="mode-badge badge-blue">Trinn 2</span>
+          <span style="font-size: 1.4rem;">🔢</span>
+        </div>
+        <h3>Nivå 2: Flertall & Franske Tall</h3>
+        <p class="mode-desc">
+          Bestillinger med <em>deux</em>, <em>trois</em> og flertallsform av substantiv.
+        </p>
+        <button class="btn-start" onclick="startGame('lvl2')">Start Nivå 2 ➔</button>
+      </div>
+
+      <div class="mode-card">
+        <div class="mode-header">
+          <span class="mode-badge badge-blue">Trinn 3</span>
+          <span style="font-size: 1.4rem;">🚫</span>
+        </div>
+        <h3>Nivå 3: Nektelse (« Pas de »)</h3>
+        <p class="mode-desc">
+          Pass på fellene! Kunden sier <em>« mais pas de croissant »</em> eller <em>« et sans pomme »</em>.
+        </p>
+        <button class="btn-start" onclick="startGame('lvl3')">Start Nivå 3 ➔</button>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <h2 class="section-title">🏅 Elevenes Toppliste på denne enheten</h2>
+    <div class="leaderboard-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-weight: 700; color: var(--text-muted); font-size: 0.9rem;">Topp 15 servitører</span>
+        <button class="btn-clear" id="btnClearScores" style="padding: 6px 12px; font-size: 0.8rem;" onclick="clearLeaderboard()">
+          Nullstill liste
         </button>
       </div>
-
-      <h2 class="mode-section-title">🏆 Konkurransemoduser (Med poengbevis &amp; toppliste)</h2>
-      <div class="mode-grid">
-        <div class="mode-card comp" onclick="startGame('rush')">
-          <div>
-            <span class="mode-badge badge-comp">🔥 Mest populær</span>
-            <h3>Rushtid i Paris</h3>
-            <p>Du har <strong>3 liv (❤️❤️❤️)</strong>. For hver kunde krymper tiden, og bestillingene blir vanskeligere. (Tips: Klikk <em>🧘 Rolig modus</em> øverst hvis du vil fjerne tidspresset!)</p>
-          </div>
-          <button class="mode-start-btn">Start Rushtid ➔</button>
-        </div>
-
-        <div class="mode-card comp" onclick="startGame('sprint')">
-          <div>
-            <span class="mode-badge badge-comp">⚡ Fellesstart i klassen</span>
-            <h3>2-Minutters Klasseduell</h3>
-            <p>Alle har nøyaktig <strong>120 sekunder</strong>! Ekspeder så mange kunder og tjen så mange poeng du klarer før klokka ringer.</p>
-          </div>
-          <button class="mode-start-btn">Start 2-Min Duell ➔</button>
-        </div>
-      </div>
-
-      <h2 class="mode-section-title">🎓 Treningsnivåer (Øv på spesifikke mål)</h2>
-      <div class="mode-grid">
-        <div class="mode-card" onclick="startGame('lvl1')">
-          <div>
-            <span class="mode-badge badge-lvl1">Nivå 1 • Lærling</span>
-            <h3>Enkle bestillinger</h3>
-            <p>1–2 varer med <em>un / une</em> og tall fra 1 til 10 i kassen. Perfekt for å lære matordene!</p>
-          </div>
-          <button class="mode-start-btn">Spill Nivå 1</button>
-        </div>
-
-        <div class="mode-card" onclick="startGame('lvl2')">
-          <div>
-            <span class="mode-badge badge-lvl2">Nivå 2 • Servitør</span>
-            <h3>Flertall &amp; Hoderegning</h3>
-            <p>Kundene bestiller <em>deux</em> eller <em>trois</em> av samme vare, og summen i kassen går opptil 25 €.</p>
-          </div>
-          <button class="mode-start-btn">Spill Nivå 2</button>
-        </div>
-
-        <div class="mode-card" onclick="startGame('lvl3')">
-          <div>
-            <span class="mode-badge badge-lvl3">Nivå 3 • Kjøkkensjef</span>
-            <h3>Nektelse («pas de / sans»)</h3>
-            <p>Pass opp for feller! Kundene sier hva de vil ha, men også hva de <strong>ikke</strong> vil ha (<em>mais pas de... / sans...</em>).</p>
-          </div>
-          <button class="mode-start-btn">Spill Nivå 3</button>
-        </div>
-      </div>
-
-      <!-- Highscore Table -->
-      <div class="leaderboard-box">
-        <div class="leaderboard-header">
-          <h3 style="font-family: Georgia, serif; color: var(--bistro-wood);">🏅 Toppliste på denne maskinen</h3>
-          <button class="btn-clear" id="btnClearScores" style="padding: 4px 10px; font-size: 0.78rem;" onclick="clearLeaderboard()">Nullstill liste</button>
-        </div>
+      <div style="overflow-x: auto;">
         <table class="leaderboard-table">
           <thead>
             <tr>
-              <th>#</th>
+              <th>Plass</th>
               <th>Navn</th>
               <th>Modus</th>
               <th>Poeng</th>
@@ -1766,173 +1132,129 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
               <th>Rang</th>
             </tr>
           </thead>
-          <tbody id="leaderboardBody"><tr><td colspan="6" style="text-align:center; color:#888;">Ingen poengsummer lagret ennå. Spill en runde for å komme på pallen!</td></tr></tbody>
+          <tbody id="leaderboardBody"></tbody>
         </table>
       </div>
     </div>
+
+    <!-- OFFLINE DOWNLOAD -->
+    <div style="margin-top: 24px; text-align: center;">
+      <button class="pill-btn" style="background:#ffffff; color:#0f172a; border-color:#cbd5e1; padding: 10px 18px;" onclick="downloadHtmlFile()">
+        💾 Last ned som offline HTML-fil til PC / minnepenn
+      </button>
+    </div>
+
   </section>
 
-  <!-- GAME SCREEN -->
-  <section id="screenGame" class="screen">
-    <div class="hud">
+  <!-- ================= SCREEN 2: GAMEPLAY ================= -->
+  <section class="screen" id="screenGame">
+
+    <!-- HUD -->
+    <div class="hud-bar">
       <div class="hud-item">
-        <span class="hud-label" id="hudModeLabel">Modus</span>
+        <span class="hud-label" id="hudModeLabel">Liv igjen</span>
         <span class="hud-val" id="hudLives">❤️❤️❤️</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Poengsum</span>
-        <span class="hud-val" id="hudScore">0</span>
+        <span class="hud-val gold" id="hudScore">0</span>
       </div>
       <div class="hud-item">
-        <span class="hud-label">Inntjening</span>
-        <span class="hud-val" id="hudEuros">0 €</span>
+        <span class="hud-label">Kassen (inkl. tips)</span>
+        <span class="hud-val green" id="hudEuros">0 €</span>
       </div>
       <div class="hud-item">
-        <span class="hud-label">Kunder ekspedert</span>
+        <span class="hud-label">Kunder</span>
         <span class="hud-val" id="hudCustomers">0</span>
       </div>
       <div class="hud-item">
-        <span class="hud-label">Combo / Streak</span>
-        <span class="hud-val"><span class="streak-pill" id="hudStreak">🔥 x1</span></span>
+        <span class="hud-label">Streak</span>
+        <span class="hud-val" id="hudStreak">🔥 x1</span>
       </div>
     </div>
 
-    <div id="feedbackBanner" class="feedback-banner"></div>
+    <!-- FEEDBACK BANNER -->
+    <div class="feedback-banner" id="feedbackBanner"></div>
 
-    <!-- Customer & Speech Bubble -->
-    <div class="customer-stage">
-      <div class="customer-avatar-box">
-        <div class="customer-emoji" id="custEmoji">👩‍🎨</div>
-        <div class="customer-name" id="custName">Camille</div>
-      </div>
-      <div>
-        <div class="speech-bubble">
-          <div class="order-french" id="orderText">« Bonjour ! Je voudrais un croissant, s'il vous plaît. »</div>
-          <div class="order-controls">
-            <div class="audio-btn-group">
-              <button class="btn-audio" onclick="speakOrder(0.95)">🔊 Lytt på fransk</button>
-              <button class="btn-audio" onclick="speakOrder(0.68)">🐢 Lytt sakte</button>
-            </div>
-            <span class="calm-status-badge" id="calmStatusBadge" style="display: none;">🧘 Rolig modus aktiv – Ingen tidsfrist</span>
-          </div>
-
-          <div class="timer-wrap" id="timerWrap" style="display: block;">
-            <div class="timer-bar" id="timerBar"></div>
-          </div>
-
-          <!-- TEACHER WHITEBOARD TOOLBAR ("Lærerpanel for tavle") -->
-          <div class="teacher-toolbar" id="teacherToolbar">
-            <div class="teacher-toolbar-left">
-              <span class="teacher-label">👨‍🏫 Tavlepanel:</span>
-              <button class="btn-teacher-tool" id="btnToggleBreakdown" onclick="toggleBreakdown()">🔍 Vis språkhjelp / struktur</button>
-              <button class="btn-teacher-tool" onclick="nextCustomer()">
-                ⏭️ Ny kunde
-              </button>
-            </div>
-            <div class="teacher-toolbar-right">
-              <span style="font-size: 0.78rem; color: #475569; font-weight: 700;">Bytt nivå:</span>
-              <button class="btn-teacher-tool active" id="btnTeachLvl1" onclick="switchTeacherLevel('lvl1')">Nivå 1 (un/une)</button>
-              <button class="btn-teacher-tool" id="btnTeachLvl2" onclick="switchTeacherLevel('lvl2')">Nivå 2 (flertall)</button>
-              <button class="btn-teacher-tool" id="btnTeachLvl3" onclick="switchTeacherLevel('lvl3')">Nivå 3 (nektelse)</button>
-            </div>
-          </div>
-
-          <!-- Color-coded Pedagogical Breakdown Box -->
-          <div class="grammar-breakdown" id="grammarBreakdown"></div>
+    <!-- CUSTOMER CARD -->
+    <div class="customer-card">
+      <div class="customer-top">
+        <div class="cust-avatar" id="custEmoji">👩‍🎨</div>
+        <div class="cust-info">
+          <div class="cust-name" id="custName">Camille</div>
+          <div class="cust-tag">Kunde ved disken</div>
         </div>
       </div>
+
+      <div class="order-bubble">
+        <div class="order-quote" id="orderText">« Bonjour ! Je voudrais deux croissants et un café, s'il vous plaît. »</div>
+        <div class="audio-controls">
+          <button class="btn-audio" onclick="speakOrder(0.92)">🔊 Lytt (normal fransk)</button>
+          <button class="btn-audio" onclick="speakOrder(0.72)">🐢 Lytt (langsomt)</button>
+        </div>
+      </div>
+
+      <div class="timer-wrap" id="timerWrap">
+        <div class="timer-bar" id="timerBar"></div>
+      </div>
+      <div class="calm-badge" id="calmStatusBadge">🧘 Rolig modus aktiv – Ingen tidsfrist</div>
     </div>
 
-    <!-- Counter & Tray -->
+    <!-- TEACHER TOOLBAR (Whiteboard mode) -->
+    <div class="teacher-toolbar" id="teacherToolbar">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-weight:800; font-size:0.85rem; color:#1e3a8a;">👨‍🏫 Hurtigvalg for læreren:</span>
+        <div class="teacher-btn-group">
+          <button class="btn-teach-pill" id="btnTeachLvl1" onclick="switchTeacherLevel('lvl1')">Nivå 1</button>
+          <button class="btn-teach-pill" id="btnTeachLvl2" onclick="switchTeacherLevel('lvl2')">Nivå 2</button>
+          <button class="btn-teach-pill" id="btnTeachLvl3" onclick="switchTeacherLevel('lvl3')">Nivå 3</button>
+        </div>
+      </div>
+      <button class="btn-teach-pill" id="btnToggleBreakdown" onclick="toggleBreakdown()">
+        🔍 Vis språkhjelp / struktur
+      </button>
+    </div>
+
+    <!-- GRAMMAR BREAKDOWN -->
+    <div class="grammar-box" id="grammarBreakdown"></div>
+
+    <!-- WORKSPACE: DISK & BRETT -->
     <div class="workspace">
-      <div class="counter-box">
-        <div class="box-title">
-          <span>🍽️ La Carte (Klikk for å legge på brettet)</span>
-          <span style="font-size: 0.8rem; font-family: sans-serif; color: #666;">Klikk på varen</span>
+      
+      <!-- LEFT: BISTRO DISK -->
+      <div class="counter-col">
+        <div class="col-title">
+          <span>🥐 Bistrodisken (Meny)</span>
+          <span style="font-size:0.8rem; color:var(--text-muted); font-family:sans-serif; font-weight:600;">Klikk for å legge på brettet</span>
         </div>
-        <div class="items-grid" id="itemsGrid">
-      <button class="food-btn" onclick="addToTray('croissant')">
-        <span class="food-emoji">🥐</span>
-        <span class="food-name">un croissant</span>
-        <span class="food-price">2 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('baguette')">
-        <span class="food-emoji">🥖</span>
-        <span class="food-name">une baguette</span>
-        <span class="food-price">3 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('cafe')">
-        <span class="food-emoji">☕</span>
-        <span class="food-name">un café</span>
-        <span class="food-price">2 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('chocolat')">
-        <span class="food-emoji">🍫</span>
-        <span class="food-name">un chocolat chaud</span>
-        <span class="food-price">4 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('jus')">
-        <span class="food-emoji">🧃</span>
-        <span class="food-name">un jus d'orange</span>
-        <span class="food-price">3 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('crepe')">
-        <span class="food-emoji">🥞</span>
-        <span class="food-name">une crêpe</span>
-        <span class="food-price">4 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('sandwich')">
-        <span class="food-emoji">🥪</span>
-        <span class="food-name">un sandwich</span>
-        <span class="food-price">5 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('pomme')">
-        <span class="food-emoji">🍎</span>
-        <span class="food-name">une pomme</span>
-        <span class="food-price">1 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('glace')">
-        <span class="food-emoji">🍨</span>
-        <span class="food-name">une glace</span>
-        <span class="food-price">3 €</span>
-      </button>
-    
-      <button class="food-btn" onclick="addToTray('eau')">
-        <span class="food-emoji">💧</span>
-        <span class="food-name">une eau minérale</span>
-        <span class="food-price">2 €</span>
-      </button>
-    </div>
+        <div class="items-grid" id="itemsGrid"></div>
       </div>
 
-      <div class="tray-box">
-        <div class="box-title">
-          <span>🛎️ Le Plateau (Serveringsbrett)</span>
-          <span id="trayCount" style="font-size: 0.85rem; font-family: sans-serif; color: #666;">0 varer</span>
+      <!-- RIGHT: TRAY / PLATEAU -->
+      <div class="tray-col">
+        <div class="col-title">
+          <span>🍽️ Serveringsbrettet</span>
+          <span class="hud-label" id="trayCount" style="color:var(--bistro-wine);">0 varer</span>
         </div>
         <div class="tray-surface" id="traySurface"></div>
         <div class="tray-actions">
-          <button class="btn-clear" onclick="clearTray()">🗑️ Tøm</button>
-          <button class="btn-serve" onclick="checkTrayAndOpenCaisse()">Gå til kassen ➔</button>
+          <button class="btn-clear" onclick="clearTray()">🧹 Tøm</button>
+          <button class="btn-serve" onclick="checkTrayAndOpenCaisse()">
+            🛎️ Send til kassen ➔
+          </button>
         </div>
       </div>
+
     </div>
+
   </section>
 
-  <!-- END / DIPLOMA SCREEN -->
-  <section id="screenEnd" class="screen">
+  <!-- ================= SCREEN 3: END DIPLOMA ================= -->
+  <section class="screen" id="screenEnd">
     <div class="diploma-card">
-      <div style="font-size: 2.8rem;">👨‍🍳🏆🇫🇷</div>
+      <div style="font-size: 3rem; margin-bottom: 8px;">🎓</div>
       <h2 class="diploma-header">Diplôme du Café Panique</h2>
-      <p id="endReasonText" style="color: #5c4636; font-weight: 600;">Fin du service ! Slik gikk skiftet ditt:</p>
+      <p id="endReasonText" style="color: #64748b; font-weight: 600; margin-bottom: 12px;">Fin du service ! Slik gikk skiftet ditt:</p>
       <div class="diploma-rank" id="endRankBadge">Serveur de Bistro</div>
 
       <div class="diploma-stats">
@@ -1963,7 +1285,7 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
         <span class="verify-code" id="verifyCode">BEVIS-KODE: CP-0000</span>
       </div>
 
-      <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+      <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button class="btn-serve" style="max-width: 220px;" onclick="restartSameMode()">🔄 Spill igjen</button>
         <button class="btn-clear" onclick="showMenu()">🏠 Til hovedmeny</button>
       </div>
@@ -1975,274 +1297,37 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
 <!-- CASH REGISTER MODAL ("LA CAISSE") -->
 <div class="modal-backdrop" id="caisseModal">
   <div class="modal-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-      <h2 style="font-family: Georgia, serif; color: var(--bistro-wood);">💶 La Caisse (Kassaapparat)</h2>
-      <button class="btn-audio" onclick="speakFrench('Ça fait combien, s\'il vous plaît ?')">🔊 « Ça fait combien ? »</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+      <h2 style="font-family: 'Cinzel', Georgia, serif; color: var(--bistro-wood); font-size:1.35rem;">💶 La Caisse (Kassaapparat)</h2>
+      <button class="btn-audio" onclick="speakFrench('Ça fait combien, s\'il vous plaît ?', 0.9)">🔊 Uttale</button>
     </div>
-    <p style="font-size: 0.92rem; color: #555;">Varene på brettet er helt riktige! Regn ut totalprisen og velg riktig beløp på <strong>fransk</strong>:</p>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px;">
+      Kunden spør høflig: <em>« Ça fait combien, s'il vous plaît ? »</em><br>
+      Regn sammen totalen i euro og velg riktig svar:
+    </p>
+
     <div class="receipt-box" id="receiptBox"></div>
-    <div style="font-weight: 800; color: var(--bistro-red); margin-bottom: 6px;">« Ça fait combien, s'il vous plaît ? » (Hvor mye blir det?)</div>
+
     <div class="caisse-grid" id="caisseOptions"></div>
   </div>
 </div>
 
 <!-- GLOSSARY MODAL ("GLOSEBOK") -->
 <div class="modal-backdrop" id="glossaryModal">
-  <div class="modal-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h2 style="font-family: Georgia, serif; color: var(--bistro-wood);">📖 Glosebok (Klikk for fransk uttale)</h2>
-      <button class="btn-clear" onclick="closeGlossary()">✖ Lukk</button>
-    </div>
-    <p style="font-size:0.88rem; color:#555; margin-bottom:10px;">Klikk på en boks for å høre hvordan ordet uttales på fransk:</p>
-
-    <h4 style="margin-top:10px; color:var(--bistro-red);">🥐 Mat og drikke</h4>
-    <div class="glossary-grid" id="glossaryFood">
-      <div class="glossary-item" onclick="speakFrench('un croissant')">
-        <span>🥐 <strong>un croissant</strong><br><small style="color:#666;">en croissant</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('une baguette')">
-        <span>🥖 <strong>une baguette</strong><br><small style="color:#666;">en bagett</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('un café')">
-        <span>☕ <strong>un café</strong><br><small style="color:#666;">en kaffe</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('un chocolat chaud')">
-        <span>🍫 <strong>un chocolat chaud</strong><br><small style="color:#666;">en varm sjokolade</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('un jus d\'orange')">
-        <span>🧃 <strong>un jus d'orange</strong><br><small style="color:#666;">en appelsinjuice</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('une crêpe')">
-        <span>🥞 <strong>une crêpe</strong><br><small style="color:#666;">en pannekake</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('un sandwich')">
-        <span>🥪 <strong>un sandwich</strong><br><small style="color:#666;">en sandwich</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('une pomme')">
-        <span>🍎 <strong>une pomme</strong><br><small style="color:#666;">et eple</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('une glace')">
-        <span>🍨 <strong>une glace</strong><br><small style="color:#666;">en iskrem</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('une eau minérale')">
-        <span>💧 <strong>une eau minérale</strong><br><small style="color:#666;">en flaske vann</small></span>
-        <span>🔊</span>
-      </div>
+  <div class="modal-card" style="max-width: 720px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2 style="font-family: 'Cinzel', Georgia, serif; color: var(--bistro-wood); font-size:1.35rem;">📖 Glosebok (Klikk for fransk uttale)</h2>
+      <button class="btn-clear" onclick="closeGlossary()">✕ Lukk</button>
     </div>
 
-    <h4 style="margin-top:14px; color:var(--bistro-red);">💬 Viktige uttrykk i bestillingen</h4>
-    <div class="glossary-grid" id="glossaryPhrases">
-      <div class="glossary-item" onclick="speakFrench('Je voudrais...')">
-        <span><strong>Je voudrais...</strong><br><small style="color:#666;">Jeg vil gjerne ha...</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('J\'aimerais...')">
-        <span><strong>J'aimerais...</strong><br><small style="color:#666;">Jeg skulle gjerne hatt...</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('Pour moi...')">
-        <span><strong>Pour moi...</strong><br><small style="color:#666;">Til meg...</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('s\'il vous plaît')">
-        <span><strong>s'il vous plaît</strong><br><small style="color:#666;">vær så snill</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('mais pas de...')">
-        <span><strong>mais pas de...</strong><br><small style="color:#666;">men IKKE noe...</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('et sans...')">
-        <span><strong>et sans...</strong><br><small style="color:#666;">og UTEN...</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('Ça fait combien ?')">
-        <span><strong>Ça fait combien ?</strong><br><small style="color:#666;">Hvor mye blir det?</small></span>
-        <span>🔊</span>
-      </div>
-    
-      <div class="glossary-item" onclick="speakFrench('Merci beaucoup !')">
-        <span><strong>Merci beaucoup !</strong><br><small style="color:#666;">Tusen takk!</small></span>
-        <span>🔊</span>
-      </div>
-    </div>
+    <div class="glossary-section-title">🥐 Mat og Drikke</div>
+    <div class="glossary-grid" id="glossaryFood"></div>
 
-    <h4 style="margin-top:14px; color:var(--bistro-red);">🔢 Tallene 1–30</h4>
-    <div class="glossary-grid" id="glossaryNumbers">
-        <div class="glossary-item" onclick="speakFrench('un')">
-          <span><strong>1</strong> = un</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('deux')">
-          <span><strong>2</strong> = deux</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('trois')">
-          <span><strong>3</strong> = trois</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('quatre')">
-          <span><strong>4</strong> = quatre</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('cinq')">
-          <span><strong>5</strong> = cinq</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('six')">
-          <span><strong>6</strong> = six</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('sept')">
-          <span><strong>7</strong> = sept</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('huit')">
-          <span><strong>8</strong> = huit</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('neuf')">
-          <span><strong>9</strong> = neuf</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('dix')">
-          <span><strong>10</strong> = dix</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('onze')">
-          <span><strong>11</strong> = onze</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('douze')">
-          <span><strong>12</strong> = douze</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('treize')">
-          <span><strong>13</strong> = treize</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('quatorze')">
-          <span><strong>14</strong> = quatorze</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('quinze')">
-          <span><strong>15</strong> = quinze</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('seize')">
-          <span><strong>16</strong> = seize</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('dix-sept')">
-          <span><strong>17</strong> = dix-sept</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('dix-huit')">
-          <span><strong>18</strong> = dix-huit</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('dix-neuf')">
-          <span><strong>19</strong> = dix-neuf</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt')">
-          <span><strong>20</strong> = vingt</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt et un')">
-          <span><strong>21</strong> = vingt et un</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-deux')">
-          <span><strong>22</strong> = vingt-deux</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-trois')">
-          <span><strong>23</strong> = vingt-trois</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-quatre')">
-          <span><strong>24</strong> = vingt-quatre</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-cinq')">
-          <span><strong>25</strong> = vingt-cinq</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-six')">
-          <span><strong>26</strong> = vingt-six</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-sept')">
-          <span><strong>27</strong> = vingt-sept</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-huit')">
-          <span><strong>28</strong> = vingt-huit</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('vingt-neuf')">
-          <span><strong>29</strong> = vingt-neuf</span>
-          <span>🔊</span>
-        </div>
-      
-        <div class="glossary-item" onclick="speakFrench('trente')">
-          <span><strong>30</strong> = trente</span>
-          <span>🔊</span>
-        </div>
-      </div>
+    <div class="glossary-section-title">💬 Nyttige Fraser</div>
+    <div class="glossary-grid" id="glossaryPhrases"></div>
+
+    <div class="glossary-section-title">🔢 Franske Tall 1–30</div>
+    <div class="glossary-grid" id="glossaryNumbers"></div>
   </div>
 </div>
 
@@ -2536,7 +1621,7 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
       </div>
       <div class="grammar-chips">${chips.join('')}</div>
       <div style="margin-top: 8px; font-size: 0.88rem; color: #334155;">
-        💶 <strong>Summen i kassen:</strong> ${totalEuros} € ➔ <em>« Ça fait <strong>${totalWord}</strong> euros »</em>
+        💶 <strong>Summen i kassen:</strong> ${totalEuros} € ➔ <em>« Ça fait <strong>${totalWord}</strong> euro${totalEuros > 1 ? 's' : ''} »</em>
       </div>
     `;
     box.classList.add('show');
@@ -2882,8 +1967,9 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
     const shuffledOpts = Array.from(options).sort(() => Math.random() - 0.5);
     document.getElementById('caisseOptions').innerHTML = shuffledOpts.map(num => {
       const word = FRENCH_NUMBERS[num] || num;
+      const euroWord = num > 1 ? 'euros' : 'euro';
       return `<button class="caisse-btn" onclick="submitPayment(${num}, ${total})">
-        « Ça fait ${word} euros »
+        « Ça fait ${word} ${euroWord} »
       </button>`;
     }).join('');
 
@@ -2891,8 +1977,9 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
   }
 
   function submitPayment(chosen, correctTotal) {
-    const chosenWord = FRENCH_NUMBERS[chosen];
-    speakFrench(`Ça fait ${chosenWord} euros`);
+    const chosenWord = FRENCH_NUMBERS[chosen] || chosen;
+    const chosenEuroWord = chosen > 1 ? 'euros' : 'euro';
+    speakFrench(`Ça fait ${chosenWord} ${chosenEuroWord}`);
 
     if (chosen === correctTotal) {
       document.getElementById('caisseModal').classList.remove('show');
@@ -2918,7 +2005,7 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
       if (state.whiteboardMode || state.calmMode) {
         state.awaitingNextCustomerClick = true;
         showFeedback(
-          `🎉 Très bien ! « Ça fait ${chosenWord} euros » (${correctTotal} €) er helt riktig!`,
+          `🎉 Très bien ! « Ça fait ${chosenWord} ${chosenEuroWord} » (${correctTotal} €) er helt riktig!`,
           'success',
           true
         );
@@ -3126,5 +2213,5 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
 
   window.addEventListener('DOMContentLoaded', init);
 </script>
-
-</body></html>
+</body>
+</html>
